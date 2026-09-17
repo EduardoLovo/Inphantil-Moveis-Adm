@@ -28,7 +28,7 @@ export function OrcamentosHub({
           icon={ScrollText}
           title="Meus orçamentos"
           description="Histórico de orçamentos criados, com PDF."
-          soon
+          href="/orcamentos/lista"
         />
       </StaggerItem>
       {canManageProducts && (
