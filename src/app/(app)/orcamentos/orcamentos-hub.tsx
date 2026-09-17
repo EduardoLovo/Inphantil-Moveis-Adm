@@ -20,7 +20,7 @@ export function OrcamentosHub({
           icon={FilePlus2}
           title="Novo orçamento"
           description="Monte um orçamento com produtos, desconto, frete e parcelas."
-          soon
+          href="/orcamentos/novo"
         />
       </StaggerItem>
       <StaggerItem>
