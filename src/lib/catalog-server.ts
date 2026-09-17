@@ -66,3 +66,23 @@ export async function countsByCollection(): Promise<Record<string, number>> {
   );
   return Object.fromEntries(entries);
 }
+
+// ── Vitrine pública: somente itens disponíveis ──────────────
+
+export async function listPublicCollection(c: Collection): Promise<CatalogItemFull[]> {
+  const rows = await prisma.catalogItem.findMany({
+    where: { ...whereFor(c), available: true },
+    orderBy: { code: "asc" },
+  });
+  return rows.map(toFull);
+}
+
+export async function publicCountsByCollection(): Promise<Record<string, number>> {
+  const entries = await Promise.all(
+    COLLECTIONS.map(
+      async (c) =>
+        [c.slug, await prisma.catalogItem.count({ where: { ...whereFor(c), available: true } })] as const,
+    ),
+  );
+  return Object.fromEntries(entries);
+}
