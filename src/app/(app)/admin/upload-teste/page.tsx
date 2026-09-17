@@ -19,7 +19,7 @@ export default async function UploadTestePage() {
   const rows: ImageRow[] = images.map((i) => ({
     id: i.id,
     url: i.url,
-    publicId: i.publicId,
+    key: i.key,
     createdAt: i.createdAt.toISOString(),
   }));
 

@@ -34,7 +34,7 @@ import { deleteImage, persistImage, replaceImage } from "./actions";
 export type ImageRow = {
   id: string;
   url: string;
-  publicId: string;
+  key: string;
   createdAt: string;
 };
 
@@ -125,15 +125,15 @@ function ImageCard({
       <div className="relative aspect-video bg-muted">
         <Image
           src={image.url}
-          alt={image.publicId}
+          alt={image.key}
           fill
           sizes="(max-width: 640px) 100vw, 320px"
           className="object-cover"
         />
       </div>
       <CardContent className="space-y-3 p-4">
-        <p className="truncate text-xs text-muted-foreground" title={image.publicId}>
-          {image.publicId}
+        <p className="truncate text-xs text-muted-foreground" title={image.key}>
+          {image.key}
         </p>
         <div className="flex gap-2">
           {/* Substituir */}

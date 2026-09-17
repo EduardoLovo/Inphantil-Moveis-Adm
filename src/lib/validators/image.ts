@@ -18,12 +18,11 @@ export const imageFileSchema = z
     "Formato não suportado (use JPG, PNG, WEBP ou AVIF).",
   );
 
-/** Validação no servidor dos metadados vindos do upload assinado. */
+/** Resultado do upload que o cliente devolve para persistir (a validação
+ *  autoritativa de tamanho/tipo é feita no servidor via HEAD no R2). */
 export const uploadResultSchema = z.object({
-  publicId: z.string().min(1),
+  key: z.string().min(1),
   url: z.string().url(),
-  bytes: z.number().int().positive().max(MAX_IMAGE_BYTES),
-  format: z.string().min(1),
 });
 
 export type UploadResult = z.infer<typeof uploadResultSchema>;

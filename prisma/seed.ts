@@ -18,7 +18,8 @@ async function main() {
 
   const dev = await prisma.user.upsert({
     where: { email },
-    update: { role: Role.DEV, isActive: true, name },
+    // Re-rodar o seed sincroniza o DEV inicial com o .env (inclui a senha).
+    update: { role: Role.DEV, isActive: true, name, passwordHash },
     create: { email, name, passwordHash, role: Role.DEV, isActive: true },
   });
 

@@ -6,11 +6,10 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { createUploadSignature } from "@/app/actions/upload";
+import { createUploadUrl } from "@/app/actions/upload";
 import {
   ACCEPTED_IMAGE_TYPES,
   imageFileSchema,
-  uploadResultSchema,
   type UploadResult,
 } from "@/lib/validators/image";
 
@@ -45,33 +44,19 @@ export function ImageUploader({
     setBusy(true);
 
     try {
-      const sig = await createUploadSignature();
+      const { uploadUrl, key, url } = await createUploadUrl(file.type);
 
-      const form = new FormData();
-      form.append("file", file);
-      form.append("api_key", sig.apiKey);
-      form.append("timestamp", String(sig.timestamp));
-      form.append("signature", sig.signature);
-      form.append("folder", sig.folder);
-
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${sig.cloudName}/image/upload`,
-        { method: "POST", body: form },
-      );
-
-      if (!res.ok) {
-        const detail = await res.json().catch(() => null);
-        throw new Error(detail?.error?.message ?? "Falha no upload.");
-      }
-
-      const data = await res.json();
-      const result = uploadResultSchema.parse({
-        publicId: data.public_id,
-        url: data.secure_url,
-        bytes: data.bytes,
-        format: data.format,
+      const res = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: { "Content-Type": file.type },
       });
 
+      if (!res.ok) {
+        throw new Error("Falha no envio ao armazenamento.");
+      }
+
+      const result: UploadResult = { key, url };
       await onUploaded(result);
       toast.success("Imagem enviada.");
     } catch (err) {

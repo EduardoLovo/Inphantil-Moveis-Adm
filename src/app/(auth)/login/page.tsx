@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Reveal } from "@/components/motion/reveal";
+import { ConstellationField } from "@/components/motion/constellation-field";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Entrar" };
@@ -25,8 +26,9 @@ export default async function LoginPage({
     callbackUrl && callbackUrl.startsWith("/") ? callbackUrl : "/dashboard";
 
   return (
-    <div className="bg-playful grid min-h-screen place-items-center px-4 py-10">
-      <Reveal className="w-full max-w-sm">
+    <div className="bg-playful relative grid min-h-screen place-items-center overflow-hidden px-4 py-10">
+      <ConstellationField />
+      <Reveal className="relative z-10 w-full max-w-sm">
         <div className="mb-6 flex justify-center">
           <Logo />
         </div>

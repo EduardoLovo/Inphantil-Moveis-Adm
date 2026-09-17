@@ -1,7 +1,6 @@
 import "server-only";
 
-import { cloudinary, safeDestroy } from "@/lib/cloudinary";
-import { cloudinaryEnv } from "@/lib/env";
+import { listKeys, safeDestroy } from "@/lib/storage";
 import { prisma } from "@/lib/prisma";
 
 export type CleanupReport = {
@@ -14,9 +13,9 @@ export type CleanupReport = {
 /**
  * Rotina administrativa de limpeza (mesmo conceito do media-cleanup da
  * Inphantil). Duas frentes:
- *  1) Retenta destruir os OrphanImage pendentes (destroys que falharam).
- *  2) Varre a pasta do Cloudinary e remove assets que NÃO têm mais
- *     referência na tabela Image.
+ *  1) Retenta apagar os OrphanImage pendentes (deletes que falharam).
+ *  2) Varre o bucket do R2 e remove objetos que NÃO têm mais referência
+ *     na tabela Image.
  */
 export async function runMediaCleanup(): Promise<CleanupReport> {
   const report: CleanupReport = {
@@ -33,7 +32,7 @@ export async function runMediaCleanup(): Promise<CleanupReport> {
   });
   for (const orphan of pending) {
     report.orphansRetried++;
-    const ok = await safeDestroy(orphan.publicId, "retry limpeza");
+    const ok = await safeDestroy(orphan.key, "retry limpeza");
     if (ok) {
       await prisma.orphanImage.update({
         where: { id: orphan.id },
@@ -43,31 +42,19 @@ export async function runMediaCleanup(): Promise<CleanupReport> {
     }
   }
 
-  // 2) Varredura de não-referenciados na pasta
-  const { folder } = cloudinaryEnv();
+  // 2) Varredura de não-referenciados no bucket
   const referenced = new Set(
-    (await prisma.image.findMany({ select: { publicId: true } })).map(
-      (i) => i.publicId,
-    ),
+    (await prisma.image.findMany({ select: { key: true } })).map((i) => i.key),
   );
 
-  let nextCursor: string | undefined;
-  do {
-    const res = await cloudinary.api.resources({
-      type: "upload",
-      prefix: folder,
-      max_results: 200,
-      next_cursor: nextCursor,
-    });
-    for (const asset of res.resources ?? []) {
-      report.unreferencedScanned++;
-      if (!referenced.has(asset.public_id)) {
-        const ok = await safeDestroy(asset.public_id, "não referenciado");
-        if (ok) report.unreferencedRemoved++;
-      }
+  const keys = await listKeys();
+  for (const key of keys) {
+    report.unreferencedScanned++;
+    if (!referenced.has(key)) {
+      const ok = await safeDestroy(key, "não referenciado");
+      if (ok) report.unreferencedRemoved++;
     }
-    nextCursor = res.next_cursor;
-  } while (nextCursor);
+  }
 
   return report;
 }

@@ -9,69 +9,69 @@
   Coral acolhedor + menta + toque de manteiga. Clara e escura.
 */
 :root {
-  --background: #fff8f3;
-  --foreground: #3b3340;
+  --background: #fff6e0;
+  --foreground: #2e2f33;
 
   --card: #ffffff;
-  --card-foreground: #3b3340;
+  --card-foreground: #2e2f33;
 
   --popover: #ffffff;
-  --popover-foreground: #3b3340;
+  --popover-foreground: #2e2f33;
 
-  --primary: #ff6b8b;
-  --primary-foreground: #ffffff;
+  --primary: #f6c945;
+  --primary-foreground: #2e2f33;
 
-  --secondary: #e9f6f1;
-  --secondary-foreground: #1f6b5c;
+  --secondary: #d9d9d6;
+  --secondary-foreground: #2e2f33;
 
-  --muted: #f4eef1;
-  --muted-foreground: #8b8290;
+  --muted: #efe9d5;
+  --muted-foreground: #74777a;
 
-  --accent: #fff0d6;
-  --accent-foreground: #8a5a12;
+  --accent: #fff0c2;
+  --accent-foreground: #7a5c0c;
 
-  --destructive: #e5484d;
+  --destructive: #d64545;
   --destructive-foreground: #ffffff;
 
-  --success: #2fae7a;
+  --success: #3f9d6a;
 
-  --border: #efe2e8;
-  --input: #efe2e8;
-  --ring: #ff6b8b;
+  --border: #e4ded0;
+  --input: #d9d9d6;
+  --ring: #f6c945;
 
   --radius: 0.9rem;
 }
 
 .dark {
-  --background: #1a1723;
-  --foreground: #f2ecf5;
+  --background: #2e2f33;
+  --foreground: #f3f1ea;
 
-  --card: #241f30;
-  --card-foreground: #f2ecf5;
+  --card: #35363b;
+  --card-foreground: #f3f1ea;
 
-  --popover: #241f30;
-  --popover-foreground: #f2ecf5;
+  --popover: #35363b;
+  --popover-foreground: #f3f1ea;
 
-  --primary: #ff8aa3;
-  --primary-foreground: #2a0f16;
+  --primary: #f6c945;
+  --primary-foreground: #2e2f33;
 
-  --secondary: #1f2f2b;
-  --secondary-foreground: #bff0e6;
+  --secondary: #3d3e44;
+  --secondary-foreground: #d9d9d6;
 
-  --muted: #2b2438;
-  --muted-foreground: #a99fb5;
+  --muted: #3a3b40;
+  --muted-foreground: #a7a9ac;
 
-  --accent: #3a2f22;
-  --accent-foreground: #ffd591;
+  --accent: #45402d;
+  --accent-foreground: #f6c945;
 
-  --destructive: #ff6369;
+  --destructive: #f2555a;
   --destructive-foreground: #2a0f10;
 
   --success: #52c99a;
 
-  --border: #332b42;
-  --input: #332b42;
-  --ring: #ff8aa3;
+  --border: #44454b;
+  --input: #44454b;
+  --ring: #f6c945;
 }
 
 @theme inline {
@@ -126,7 +126,7 @@ body {
 }
 
 .text-gradient {
-  background: linear-gradient(120deg, var(--primary), var(--secondary-foreground));
+  background: linear-gradient(120deg, #f6c945, #e0a72a);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

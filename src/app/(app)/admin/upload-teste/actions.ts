@@ -5,43 +5,66 @@ import { Role } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/rbac";
-import { safeDestroy } from "@/lib/cloudinary";
-import { uploadResultSchema } from "@/lib/validators/image";
+import { headObject, safeDestroy } from "@/lib/storage";
+import {
+  ACCEPTED_IMAGE_TYPES,
+  MAX_IMAGE_BYTES,
+  uploadResultSchema,
+} from "@/lib/validators/image";
 
 const STAFF = [Role.DEV, Role.ADMIN];
 const PATH = "/admin/upload-teste";
 
 type Result = { ok: true } | { ok: false; error: string };
 
-/** Persiste uma imagem recém-enviada ao Cloudinary. */
+/**
+ * Verificação autoritativa no servidor: o objeto existe no R2 e respeita
+ * tamanho/tipo? Se não, apaga e recusa (evita órfão e upload inválido).
+ */
+async function verifyObject(key: string): Promise<Result> {
+  const meta = await headObject(key);
+  if (!meta) return { ok: false, error: "Upload não encontrado no armazenamento." };
+  if (meta.size > MAX_IMAGE_BYTES) {
+    await safeDestroy(key, "verifyObject: acima do limite");
+    return { ok: false, error: "Imagem acima de 5 MB." };
+  }
+  if (!(ACCEPTED_IMAGE_TYPES as readonly string[]).includes(meta.contentType)) {
+    await safeDestroy(key, "verifyObject: tipo inválido");
+    return { ok: false, error: "Formato não suportado." };
+  }
+  return { ok: true };
+}
+
+/** Persiste uma imagem recém-enviada ao R2. */
 export async function persistImage(input: unknown): Promise<Result> {
   await requireRole(STAFF);
 
   const parsed = uploadResultSchema.safeParse(input);
   if (!parsed.success) {
-    // Dado inválido: não deixamos o arquivo enviado virar órfão.
-    const publicId = (input as { publicId?: string })?.publicId;
-    if (publicId) await safeDestroy(publicId, "persistImage: payload inválido");
+    const key = (input as { key?: string })?.key;
+    if (key) await safeDestroy(key, "persistImage: payload inválido");
     return { ok: false, error: "Retorno de upload inválido." };
   }
 
+  const verified = await verifyObject(parsed.data.key);
+  if (!verified.ok) return verified;
+
   try {
     await prisma.image.create({
-      data: { url: parsed.data.url, publicId: parsed.data.publicId },
+      data: { url: parsed.data.url, key: parsed.data.key },
     });
     revalidatePath(PATH);
     return { ok: true };
   } catch {
-    // Falhou ao gravar → remove o arquivo já enviado (evita órfão).
-    await safeDestroy(parsed.data.publicId, "persistImage: erro no banco");
+    await safeDestroy(parsed.data.key, "persistImage: erro no banco");
     return { ok: false, error: "Não foi possível salvar a imagem." };
   }
 }
 
 /**
- * Substitui a imagem: a NOVA já foi enviada ao Cloudinary pelo cliente.
- * Atualiza o banco e SÓ ENTÃO destrói a antiga. Se o banco falhar,
- * destrói a nova e mantém a antiga intacta.
+ * Substitui a imagem: a NOVA já foi enviada ao R2 pelo cliente.
+ * Atualiza o banco e SÓ ENTÃO apaga a antiga. Se o banco falhar, apaga a
+ * nova e mantém a antiga intacta.
  */
 export async function replaceImage(
   id: string,
@@ -51,38 +74,41 @@ export async function replaceImage(
 
   const parsed = uploadResultSchema.safeParse(input);
   if (!parsed.success) {
-    const publicId = (input as { publicId?: string })?.publicId;
-    if (publicId) await safeDestroy(publicId, "replaceImage: payload inválido");
+    const key = (input as { key?: string })?.key;
+    if (key) await safeDestroy(key, "replaceImage: payload inválido");
     return { ok: false, error: "Retorno de upload inválido." };
   }
 
+  const verified = await verifyObject(parsed.data.key);
+  if (!verified.ok) return verified;
+
   const existing = await prisma.image.findUnique({ where: { id } });
   if (!existing) {
-    await safeDestroy(parsed.data.publicId, "replaceImage: registro sumiu");
+    await safeDestroy(parsed.data.key, "replaceImage: registro sumiu");
     return { ok: false, error: "Imagem não encontrada." };
   }
 
-  const oldPublicId = existing.publicId;
-  const isSame = oldPublicId === parsed.data.publicId;
+  const oldKey = existing.key;
+  const isSame = oldKey === parsed.data.key;
 
   try {
     await prisma.image.update({
       where: { id },
-      data: { url: parsed.data.url, publicId: parsed.data.publicId },
+      data: { url: parsed.data.url, key: parsed.data.key },
     });
   } catch {
-    await safeDestroy(parsed.data.publicId, "replaceImage: erro no banco");
+    await safeDestroy(parsed.data.key, "replaceImage: erro no banco");
     return { ok: false, error: "Não foi possível substituir a imagem." };
   }
 
-  // Banco OK → agora sim remove a antiga do Cloudinary.
-  if (!isSame) await safeDestroy(oldPublicId, "replaceImage: substituída");
+  // Banco OK → agora sim remove a antiga do R2.
+  if (!isSame) await safeDestroy(oldKey, "replaceImage: substituída");
 
   revalidatePath(PATH);
   return { ok: true };
 }
 
-/** Exclui o registro e o(s) arquivo(s) no Cloudinary. */
+/** Exclui o registro e o objeto no R2. */
 export async function deleteImage(id: string): Promise<Result> {
   await requireRole(STAFF);
 
@@ -95,8 +121,7 @@ export async function deleteImage(id: string): Promise<Result> {
     return { ok: false, error: "Não foi possível excluir." };
   }
 
-  // Após remover do banco, limpa o Cloudinary (registra órfão se falhar).
-  await safeDestroy(existing.publicId, "deleteImage");
+  await safeDestroy(existing.key, "deleteImage");
 
   revalidatePath(PATH);
   return { ok: true };

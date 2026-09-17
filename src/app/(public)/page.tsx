@@ -4,11 +4,13 @@ import { ArrowRight, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Reveal, StaggerContainer, StaggerItem } from "@/components/motion/reveal";
+import { ConstellationField } from "@/components/motion/constellation-field";
 
 export default function LandingPage() {
   return (
-    <section className="bg-playful">
-      <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-6xl flex-col items-center justify-center px-4 py-16 text-center md:px-6">
+    <section className="relative overflow-hidden bg-playful">
+      <ConstellationField />
+      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-6xl flex-col items-center justify-center px-4 py-16 text-center md:px-6">
         <Reveal>
           <Badge variant="secondary" className="mb-5">
             Inphantil · Cloud

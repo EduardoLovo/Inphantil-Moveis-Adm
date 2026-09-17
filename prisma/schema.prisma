@@ -34,15 +34,15 @@ model User {
 model Image {
   id        String   @id @default(cuid())
   url       String
-  publicId  String   @unique
+  key       String   @unique // key do objeto no R2
   createdAt DateTime @default(now())
 }
 
-/// Rede de segurança: public_ids cujo destroy no Cloudinary falhou.
-/// A rotina de limpeza tenta removê-los novamente e marca resolvedAt.
+/// Rede de segurança: keys cujo delete no R2 falhou. A rotina de limpeza
+/// tenta removê-las novamente e marca resolvedAt.
 model OrphanImage {
   id         String    @id @default(cuid())
-  publicId   String    @unique
+  key        String    @unique
   reason     String?
   createdAt  DateTime  @default(now())
   resolvedAt DateTime?

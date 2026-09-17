@@ -15,7 +15,7 @@ com duas áreas:
 
 Next.js 16 · TypeScript (strict) · Tailwind CSS v4 · shadcn/ui (Radix) ·
 Framer Motion · Prisma + PostgreSQL (Neon) · Auth.js (NextAuth v5, JWT) ·
-React Hook Form + Zod · Cloudinary · next-themes.
+React Hook Form + Zod · Cloudflare R2 (via API S3) · next-themes.
 
 ## Papéis (RBAC)
 
@@ -46,7 +46,7 @@ npm install
 # 2) Configurar ambiente
 cp .env.example .env
 #   Preencha DATABASE_URL, NEXTAUTH_SECRET (npx auth secret),
-#   SEED_DEV_* e as credenciais do Cloudinary.
+#   SEED_DEV_* e as credenciais do Cloudflare R2.
 
 # 3) Criar as tabelas (a migration inicial já vem incluída em prisma/migrations)
 npm run prisma:migrate       # aplica a migration no banco (dev)
@@ -75,24 +75,48 @@ auto-cadastro).
 | `npm run db:seed` | Semeia o DEV inicial |
 | `npm run prisma:studio` | Prisma Studio |
 
-## Upload de imagens (Cloudinary) e ciclo de vida
+## Upload de imagens (Cloudflare R2) e ciclo de vida
 
 Todo upload/substituição/exclusão passa pelo serviço central
-`src/lib/cloudinary.ts`, para **nunca** deixar arquivo órfão:
+`src/lib/storage.ts` (R2 via API S3), para **nunca** deixar arquivo órfão:
 
-- **Upload:** o cliente pede uma **assinatura** (Server Action
-  `createUploadSignature`), envia o arquivo direto ao Cloudinary e o servidor
-  grava apenas `url` + `publicId`.
-- **Substituir:** envia a nova → atualiza o banco → **só então** destrói a
-  antiga. Se o banco falhar, a nova é removida e a antiga permanece.
-- **Excluir:** remove o registro e depois destrói o(s) `publicId`(s).
-- **Rede de segurança:** se um `destroy` falhar, o `publicId` vai para a tabela
+- **Upload:** o cliente pede uma **URL pré-assinada** (Server Action
+  `createUploadUrl`), envia o arquivo direto ao R2 (PUT) e o servidor grava
+  apenas `url` + `key`. Ao persistir, o servidor faz um HEAD no objeto para
+  validar tamanho/tipo de forma autoritativa.
+- **Substituir:** envia a nova → atualiza o banco → **só então** apaga a antiga.
+  Se o banco falhar, a nova é removida e a antiga permanece.
+- **Excluir:** remove o registro e depois apaga a(s) `key`(s).
+- **Rede de segurança:** se um delete falhar, a `key` vai para a tabela
   `OrphanImage` e a rotina `/api/cron/cleanup-images` (Vercel Cron diário,
-  protegida por `CRON_SECRET`) tenta de novo **e** varre a pasta do Cloudinary
-  removendo o que não tem mais referência no banco.
+  protegida por `CRON_SECRET`) tenta de novo **e** varre o bucket removendo o
+  que não tem mais referência no banco.
 
 Página protegida para comprovar tudo: **`/admin/upload-teste`**
 (enviar → substituir → excluir).
+
+### Configurar o R2 (uma vez)
+
+1. Cloudflare → **R2** → **Create bucket** (ex.: `inphantil`).
+2. **R2 → Manage R2 API Tokens → Create API token** com permissão *Object Read &
+   Write* no bucket. Anote **Access Key ID**, **Secret Access Key** e o
+   **Account ID** → vão no `.env` (`R2_*`).
+3. **Acesso público:** no bucket, ative o subdomínio **r2.dev** (dá uma URL
+   `https://pub-xxxx.r2.dev`) ou conecte um **domínio próprio**. Essa base vai em
+   `R2_PUBLIC_BASE_URL`.
+4. **CORS** do bucket (para o upload direto do navegador) — em *Settings → CORS
+   policy*:
+
+   ```json
+   [
+     {
+       "AllowedOrigins": ["http://localhost:3000", "https://SEU-DOMINIO"],
+       "AllowedMethods": ["PUT", "GET"],
+       "AllowedHeaders": ["content-type"],
+       "MaxAgeSeconds": 3600
+     }
+   ]
+   ```
 
 ## Estrutura
 
@@ -110,7 +134,7 @@ src/
     api/auth/[...nextauth]/
     api/cron/cleanup-images/
   components/  (ui/ = shadcn, app-shell/, upload/, motion/, ...)
-  lib/  (auth, prisma, rbac, roles, cloudinary, media-cleanup, nav, validators)
+  lib/  (auth, prisma, rbac, roles, storage, media-cleanup, nav, validators)
 prisma/  (schema.prisma, seed.ts)
 ```
 
@@ -123,6 +147,9 @@ prisma/  (schema.prisma, seed.ts)
 
 ## Notas
 
-- `next.config.ts` libera `res.cloudinary.com` para o `next/image`.
+- `next.config.ts` libera o host público do R2 (`**.r2.dev` e/ou o domínio de
+  `R2_PUBLIC_BASE_URL`) para o `next/image`.
+- No deploy, lembre de incluir `http://localhost:3000` **e** o domínio de
+  produção na política de CORS do bucket R2.
 - Auditoria: há um aviso de vulnerabilidade em `deepmerge-ts`, dependência
   **transitiva de lint** (dev-only), sem impacto em runtime.
