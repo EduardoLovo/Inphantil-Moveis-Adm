@@ -1,0 +1,51 @@
+// Prisma schema — Inphantil Cloud
+// Ciclo 1: base + autenticação + upload. Preparado para crescer.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  DEV
+  ADMIN
+  SELLER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(SELLER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([role])
+}
+
+/// Registro simples de imagem — valida o ciclo de vida do upload já
+/// neste ciclo (sem vínculo com catálogo ainda).
+model Image {
+  id        String   @id @default(cuid())
+  url       String
+  publicId  String   @unique
+  createdAt DateTime @default(now())
+}
+
+/// Rede de segurança: public_ids cujo destroy no Cloudinary falhou.
+/// A rotina de limpeza tenta removê-los novamente e marca resolvedAt.
+model OrphanImage {
+  id         String    @id @default(cuid())
+  publicId   String    @unique
+  reason     String?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@index([resolvedAt])
+}
