@@ -32,7 +32,7 @@ export function FreteHub() {
           icon={Calculator}
           title="Calculadora Correios"
           description="Calcula preço e prazo pelos Correios."
-          soon
+          href="/frete/calculadora"
         />
       </StaggerItem>
     </StaggerContainer>
