@@ -1,15 +1,23 @@
 import type { Metadata } from "next";
-import { FileText } from "lucide-react";
-import { ComingSoon } from "@/components/coming-soon";
+import { Role } from "@prisma/client";
+
+import { PageHeader } from "@/components/page-header";
+import { requireUser, hasRole } from "@/lib/rbac";
+import { OrcamentosHub } from "./orcamentos-hub";
 
 export const metadata: Metadata = { title: "Orçamentos" };
 
-export default function OrcamentosPage() {
+export default async function OrcamentosPage() {
+  const user = await requireUser();
+  const canManageProducts = hasRole(user.role, [Role.DEV, Role.ADMIN]);
+
   return (
-    <ComingSoon
-      icon={<FileText className="size-9" />}
-      title="Orçamentos"
-      description="A geração e o acompanhamento de orçamentos entram em breve."
-    />
+    <div>
+      <PageHeader
+        title="Orçamentos"
+        description="Monte orçamentos para os clientes e gerencie o catálogo de produtos."
+      />
+      <OrcamentosHub canManageProducts={canManageProducts} />
+    </div>
   );
 }

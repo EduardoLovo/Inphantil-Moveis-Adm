@@ -26,6 +26,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  quotes Quote[]
+
   @@index([role])
 }
 
@@ -48,4 +50,74 @@ model OrphanImage {
   resolvedAt DateTime?
 
   @@index([resolvedAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Orçamentos (catálogo próprio, separado do catálogo da loja)
+// ─────────────────────────────────────────────────────────────
+
+enum QuoteMeasureType {
+  UNIDADE // vendido por peça — usa "quantidade"
+  METRO_LINEAR // vendido por metro linear — usa "medida" (m)
+  METRO_QUADRADO // vendido por metro quadrado — usa "medida" (m²)
+}
+
+/// Produto do catálogo de orçamentos. Preço fixo ou "editável"
+/// (isPriceEditable = true → a vendedora digita o valor ao adicionar).
+model QuoteProduct {
+  id              Int              @id @default(autoincrement())
+  sku             String?          @unique @db.VarChar(50)
+  name            String           @db.VarChar(200)
+  price           Decimal?         @db.Decimal(10, 2)
+  isPriceEditable Boolean          @default(false)
+  measureType     QuoteMeasureType @default(UNIDADE)
+  dimensions      String?          @db.VarChar(100) // ex.: "1,88 x 0,88 m"
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  quoteItems      QuoteItem[]
+
+  @@index([isActive])
+}
+
+model Quote {
+  id                     Int       @id @default(autoincrement())
+  customerName           String    @db.VarChar(200)
+  sellerId               String
+  seller                 User      @relation(fields: [sellerId], references: [id])
+  installments           Int? // nº máx. de parcelas; o PDF mostra de 1x até aqui
+  discountPercent        Decimal?  @db.Decimal(5, 2) // % de desconto do À VISTA
+  discountFixed          Decimal   @default(0) @db.Decimal(10, 2) // desconto fixo R$ do À VISTA
+  oneInstallmentDiscount Boolean   @default(false) // 4% só no à prazo 1x
+  shippingZipCode        String?   @db.VarChar(10)
+  shippingValue          Decimal   @default(0) @db.Decimal(10, 2)
+  subtotal               Decimal   @default(0) @db.Decimal(10, 2)
+  discountValue          Decimal   @default(0) @db.Decimal(10, 2)
+  total                  Decimal   @default(0) @db.Decimal(10, 2) // subtotal + frete (cheio/à prazo)
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  items                  QuoteItem[]
+
+  @@index([sellerId])
+  @@index([createdAt])
+}
+
+model QuoteItem {
+  id             Int              @id @default(autoincrement())
+  quoteId        Int
+  quote          Quote            @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quoteProductId Int?
+  quoteProduct   QuoteProduct?    @relation(fields: [quoteProductId], references: [id], onDelete: SetNull)
+  // snapshot do produto no momento do orçamento
+  sku         String           @db.VarChar(50)
+  name        String           @db.VarChar(200)
+  measureType QuoteMeasureType
+  unitPrice   Decimal          @db.Decimal(10, 2)
+  quantity    Int? // quando UNIDADE
+  measure     Decimal?         @db.Decimal(10, 3) // quando METRO_*
+  lineTotal   Decimal          @db.Decimal(10, 2)
+  dimensions  String?          @db.VarChar(100)
+  note        String?          @db.VarChar(500)
+
+  @@index([quoteId])
 }
