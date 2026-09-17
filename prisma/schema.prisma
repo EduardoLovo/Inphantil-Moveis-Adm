@@ -168,3 +168,48 @@ model ShippingQuote {
   @@index([isConcluded])
   @@index([createdAt])
 }
+
+// ─────────────────────────────────────────────────────────────
+// Catálogo (alimenta o mostruário público). Tabela única
+// polimórfica por `category`.
+// ─────────────────────────────────────────────────────────────
+
+enum CatalogCategory {
+  APLIQUE
+  TAPETE
+  CAMA
+  TECIDO_LENCOL
+  PRONTA_ENTREGA
+}
+
+enum ProntaEntregaKind {
+  LENCOL
+  LENCOL_FRONHA
+  VIROL
+  VIROL_FRONHA
+  FRONHA
+}
+
+model CatalogItem {
+  id       String          @id @default(cuid())
+  category CatalogCategory
+  code     String          @db.VarChar(60)
+  color    String          @db.VarChar(80)
+
+  // Imagem no R2 (url pública + key para replace/destroy)
+  imageUrl String?
+  imageKey String?
+
+  available Boolean @default(true)
+
+  // Específicos por categoria (nulos quando não se aplicam):
+  quantity   Int? // APLIQUE, PRONTA_ENTREGA
+  fazExterno Boolean            @default(false) // CAMA (interno é sempre; externo é a exceção)
+  prontaKind ProntaEntregaKind? // PRONTA_ENTREGA
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([category, available])
+}

@@ -1,21 +1,25 @@
 import type { Metadata } from "next";
-import { Package } from "lucide-react";
 import { Role } from "@prisma/client";
 
-import { ComingSoon } from "@/components/coming-soon";
+import { PageHeader } from "@/components/page-header";
 import { guardPage } from "@/lib/guard";
+import { countsByCategory } from "@/lib/catalog-server";
+import { CatalogoHub } from "./catalogo-hub";
 
 export const metadata: Metadata = { title: "Catálogo" };
+export const dynamic = "force-dynamic";
 
 export default async function CatalogoPage() {
-  // Catálogo é área de gestão: DEV e ADMIN.
   await guardPage([Role.DEV, Role.ADMIN]);
+  const counts = await countsByCategory();
 
   return (
-    <ComingSoon
-      icon={<Package className="size-9" />}
-      title="Catálogo"
-      description="O CRUD do catálogo — que alimentará o mostruário público — nasce aqui."
-    />
+    <div>
+      <PageHeader
+        title="Catálogo"
+        description="Gerencie os itens que alimentam o mostruário público."
+      />
+      <CatalogoHub counts={counts} />
+    </div>
   );
 }
