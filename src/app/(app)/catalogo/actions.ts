@@ -6,7 +6,7 @@ import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/rbac";
 import { safeDestroy } from "@/lib/storage";
-import { categoryByValue } from "@/lib/catalog";
+import { COLLECTIONS } from "@/lib/catalog";
 import {
   createCatalogItemSchema,
   updateCatalogItemSchema,
@@ -20,7 +20,7 @@ const STAFF = [Role.DEV, Role.ADMIN];
 function normalize(d: CatalogItemInput) {
   const isAplique = d.category === "APLIQUE";
   const isPronta = d.category === "PRONTA_ENTREGA";
-  const isCama = d.category === "CAMA";
+  const isSintetico = d.category === "SINTETICO";
   return {
     category: d.category,
     code: d.code,
@@ -29,15 +29,19 @@ function normalize(d: CatalogItemInput) {
     imageKey: d.imageKey,
     available: d.available,
     quantity: isAplique || isPronta ? d.quantity : null,
-    fazExterno: isCama ? d.fazExterno : false,
+    fazExterno: isSintetico ? d.fazExterno : false,
+    cabana: isAplique ? d.cabana : false,
+    tapete: isSintetico ? d.tapete : false,
     prontaKind: isPronta ? d.prontaKind : null,
   };
 }
 
 function revalidate(category: string) {
-  const slug = categoryByValue(category)?.slug;
   revalidatePath("/catalogo");
-  if (slug) revalidatePath(`/catalogo/${slug}`);
+  // Revalida todas as coleções que exibem essa categoria (base + filtradas).
+  for (const c of COLLECTIONS) {
+    if (c.category === category) revalidatePath(`/catalogo/${c.slug}`);
+  }
 }
 
 export async function createCatalogItem(input: unknown): Promise<ActionResult> {

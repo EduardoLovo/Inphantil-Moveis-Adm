@@ -22,10 +22,12 @@ import { ImageUploader } from "@/components/upload/image-uploader";
 import { StaggerContainer, StaggerItem } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
 import {
+  CATEGORY_META,
   PRONTA_KINDS,
   PRONTA_KIND_LABEL,
   type CategoryMeta,
   type CatalogItemFull,
+  type Collection,
   type ProntaKind,
 } from "@/lib/catalog";
 import {
@@ -40,12 +42,13 @@ const selectClass =
 
 export function CatalogList({
   items,
-  category,
+  collection,
 }: {
   items: CatalogItemFull[];
-  category: CategoryMeta;
+  collection: Collection;
 }) {
   const router = useRouter();
+  const meta = CATEGORY_META[collection.category];
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<CatalogItemFull | null>(null);
   const [busyId, setBusyId] = React.useState<string | null>(null);
@@ -72,13 +75,13 @@ export function CatalogList({
     <div>
       <div className="mb-4 flex justify-end">
         <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
-          <Plus className="size-4" /> Novo item
+          <Plus className="size-4" /> Novo {meta.singular}
         </Button>
       </div>
 
       {items.length === 0 ? (
         <div className="rounded-xl border border-dashed p-12 text-center text-sm text-muted-foreground">
-          Nenhum item nesta categoria ainda.
+          Nenhum item nesta coleção ainda.
         </div>
       ) : (
         <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -86,7 +89,7 @@ export function CatalogList({
             <StaggerItem key={item.id}>
               <ItemCard
                 item={item}
-                category={category}
+                meta={meta}
                 busy={busyId === item.id}
                 onEdit={() => { setEditing(item); setDialogOpen(true); }}
                 onToggle={() => toggle(item)}
@@ -102,7 +105,8 @@ export function CatalogList({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         editing={editing}
-        category={category}
+        collection={collection}
+        meta={meta}
         onSaved={() => { setDialogOpen(false); router.refresh(); }}
       />
     </div>
@@ -111,14 +115,14 @@ export function CatalogList({
 
 function ItemCard({
   item,
-  category,
+  meta,
   busy,
   onEdit,
   onToggle,
   onDelete,
 }: {
   item: CatalogItemFull;
-  category: CategoryMeta;
+  meta: CategoryMeta;
   busy: boolean;
   onEdit: () => void;
   onToggle: () => void;
@@ -149,13 +153,15 @@ function ItemCard({
         </div>
         <p className="text-sm text-muted-foreground">{item.color}</p>
         <div className="flex flex-wrap gap-1.5">
-          {category.hasQuantity && item.quantity != null && (
+          {meta.hasQuantity && item.quantity != null && (
             <Badge variant="secondary">Qtd: {item.quantity}</Badge>
           )}
-          {category.hasFazExterno && (
+          {meta.hasFazExterno && (
             <Badge variant="secondary">{item.fazExterno ? "Interno + Externo" : "Interno"}</Badge>
           )}
-          {category.hasProntaKind && item.prontaKind && (
+          {meta.hasCabana && item.cabana && <Badge variant="default">Cabana</Badge>}
+          {meta.hasTapete && item.tapete && <Badge variant="default">Tapete</Badge>}
+          {meta.hasProntaKind && item.prontaKind && (
             <Badge variant="secondary">{PRONTA_KIND_LABEL[item.prontaKind]}</Badge>
           )}
         </div>
@@ -185,13 +191,15 @@ function ItemDialog({
   open,
   onOpenChange,
   editing,
-  category,
+  collection,
+  meta,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   editing: CatalogItemFull | null;
-  category: CategoryMeta;
+  collection: Collection;
+  meta: CategoryMeta;
   onSaved: () => void;
 }) {
   const isEdit = !!editing;
@@ -200,6 +208,9 @@ function ItemDialog({
   const [available, setAvailable] = React.useState(editing?.available ?? true);
   const [quantity, setQuantity] = React.useState(editing?.quantity != null ? String(editing.quantity) : "");
   const [fazExterno, setFazExterno] = React.useState(editing?.fazExterno ?? false);
+  // Ao criar dentro de uma coleção filtrada, já marca a flag.
+  const [cabana, setCabana] = React.useState(editing?.cabana ?? collection.flag === "cabana");
+  const [tapete, setTapete] = React.useState(editing?.tapete ?? collection.flag === "tapete");
   const [prontaKind, setProntaKind] = React.useState<ProntaKind | "">(editing?.prontaKind ?? "");
   const [image, setImage] = React.useState<{ url: string; key: string } | null>(
     editing?.imageUrl && editing?.imageKey ? { url: editing.imageUrl, key: editing.imageKey } : null,
@@ -208,15 +219,17 @@ function ItemDialog({
 
   async function salvar() {
     const payload = {
-      category: category.value,
+      category: collection.category,
       code,
       color,
       available,
       imageUrl: image?.url ?? null,
       imageKey: image?.key ?? null,
-      quantity: category.hasQuantity ? (quantity.trim() === "" ? null : parseInt(quantity, 10)) : null,
-      fazExterno: category.hasFazExterno ? fazExterno : false,
-      prontaKind: category.hasProntaKind ? (prontaKind || null) : null,
+      quantity: meta.hasQuantity ? (quantity.trim() === "" ? null : parseInt(quantity, 10)) : null,
+      fazExterno: meta.hasFazExterno ? fazExterno : false,
+      cabana: meta.hasCabana ? cabana : false,
+      tapete: meta.hasTapete ? tapete : false,
+      prontaKind: meta.hasProntaKind ? (prontaKind || null) : null,
     };
     setPending(true);
     const res = isEdit
@@ -235,8 +248,8 @@ function ItemDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar" : "Novo"} {category.singular}</DialogTitle>
-          <DialogDescription>{category.label}</DialogDescription>
+          <DialogTitle>{isEdit ? "Editar" : "Novo"} {meta.singular}</DialogTitle>
+          <DialogDescription>{collection.label}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -272,14 +285,14 @@ function ItemDialog({
               <Input value={color} onChange={(e) => setColor(e.target.value)} />
             </div>
 
-            {category.hasQuantity && (
+            {meta.hasQuantity && (
               <div className="space-y-2">
                 <Label>Quantidade</Label>
                 <Input inputMode="numeric" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
               </div>
             )}
 
-            {category.hasProntaKind && (
+            {meta.hasProntaKind && (
               <div className="space-y-2">
                 <Label>Tipo</Label>
                 <select className={selectClass} value={prontaKind} onChange={(e) => setProntaKind(e.target.value as ProntaKind | "")}>
@@ -292,17 +305,30 @@ function ItemDialog({
             )}
           </div>
 
-          {category.hasFazExterno && (
+          <div className="space-y-2">
+            {meta.hasFazExterno && (
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={fazExterno} onChange={(e) => setFazExterno(e.target.checked)} />
+                Também faz <strong>externo</strong> (interno todos fazem)
+              </label>
+            )}
+            {meta.hasTapete && (
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={tapete} onChange={(e) => setTapete(e.target.checked)} />
+                Aparece também no catálogo de <strong>Tapetes</strong>
+              </label>
+            )}
+            {meta.hasCabana && (
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={cabana} onChange={(e) => setCabana(e.target.checked)} />
+                Aparece também em <strong>Apliques para cabana</strong>
+              </label>
+            )}
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={fazExterno} onChange={(e) => setFazExterno(e.target.checked)} />
-              Também faz <strong>externo</strong> (interno todos fazem)
+              <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} />
+              Disponível
             </label>
-          )}
-
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} />
-            Disponível
-          </label>
+          </div>
         </div>
 
         <DialogFooter>

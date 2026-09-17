@@ -176,8 +176,7 @@ model ShippingQuote {
 
 enum CatalogCategory {
   APLIQUE
-  TAPETE
-  CAMA
+  SINTETICO
   TECIDO_LENCOL
   PRONTA_ENTREGA
 }
@@ -202,9 +201,11 @@ model CatalogItem {
 
   available Boolean @default(true)
 
-  // Específicos por categoria (nulos quando não se aplicam):
+  // Específicos por categoria (nulos/false quando não se aplicam):
   quantity   Int? // APLIQUE, PRONTA_ENTREGA
-  fazExterno Boolean            @default(false) // CAMA (interno é sempre; externo é a exceção)
+  fazExterno Boolean            @default(false) // SINTETICO (interno é sempre; externo é a exceção)
+  cabana     Boolean            @default(false) // APLIQUE — também aparece em "Apliques para cabana"
+  tapete     Boolean            @default(false) // SINTETICO — também aparece em "Tapetes"
   prontaKind ProntaEntregaKind? // PRONTA_ENTREGA
 
   createdAt DateTime @default(now())

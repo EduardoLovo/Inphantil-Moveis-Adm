@@ -6,8 +6,8 @@ import { Role } from "@prisma/client";
 
 import { PageHeader } from "@/components/page-header";
 import { guardPage } from "@/lib/guard";
-import { categoryBySlug } from "@/lib/catalog";
-import { listCatalog } from "@/lib/catalog-server";
+import { collectionBySlug } from "@/lib/catalog";
+import { listCollection } from "@/lib/catalog-server";
 import { CatalogList } from "./catalog-list";
 
 export const dynamic = "force-dynamic";
@@ -18,21 +18,21 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const cat = categoryBySlug(slug);
-  return { title: cat ? cat.label : "Catálogo" };
+  const col = collectionBySlug(slug);
+  return { title: col ? col.label : "Catálogo" };
 }
 
-export default async function CatalogCategoryPage({
+export default async function CatalogCollectionPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const category = categoryBySlug(slug);
-  if (!category) notFound();
+  const collection = collectionBySlug(slug);
+  if (!collection) notFound();
 
   await guardPage([Role.DEV, Role.ADMIN]);
-  const items = await listCatalog(category.value);
+  const items = await listCollection(collection);
 
   return (
     <div>
@@ -43,11 +43,14 @@ export default async function CatalogCategoryPage({
         <ArrowLeft className="size-4" /> Catálogo
       </Link>
       <PageHeader
-        title={category.label}
-        description="Adicione, edite e controle a disponibilidade dos itens."
+        title={collection.label}
+        description={
+          collection.flag
+            ? "Coleção filtrada — itens da categoria marcados com esta característica."
+            : "Adicione, edite e controle a disponibilidade dos itens."
+        }
       />
-      {/* category é um objeto do const CATEGORIES (serializável). */}
-      <CatalogList items={items} category={category} />
+      <CatalogList items={items} collection={collection} />
     </div>
   );
 }

@@ -1,11 +1,13 @@
 import "server-only";
-import { CatalogCategory } from "@prisma/client";
+import { CatalogCategory, Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import type {
-  CatalogCategoryValue,
-  CatalogItemFull,
-  ProntaKind,
+import {
+  COLLECTIONS,
+  type CatalogCategoryValue,
+  type CatalogItemFull,
+  type Collection,
+  type ProntaKind,
 } from "@/lib/catalog";
 
 type Row = {
@@ -18,6 +20,8 @@ type Row = {
   available: boolean;
   quantity: number | null;
   fazExterno: boolean;
+  cabana: boolean;
+  tapete: boolean;
   prontaKind: string | null;
   createdAt: Date;
 };
@@ -33,27 +37,32 @@ function toFull(r: Row): CatalogItemFull {
     available: r.available,
     quantity: r.quantity,
     fazExterno: r.fazExterno,
+    cabana: r.cabana,
+    tapete: r.tapete,
     prontaKind: (r.prontaKind as ProntaKind | null) ?? null,
     createdAt: r.createdAt.toISOString(),
   };
 }
 
-export async function listCatalog(
-  category: CatalogCategoryValue,
-): Promise<CatalogItemFull[]> {
+function whereFor(c: Collection): Prisma.CatalogItemWhereInput {
+  const where: Prisma.CatalogItemWhereInput = {
+    category: c.category as CatalogCategory,
+  };
+  if (c.flag) where[c.flag] = true;
+  return where;
+}
+
+export async function listCollection(c: Collection): Promise<CatalogItemFull[]> {
   const rows = await prisma.catalogItem.findMany({
-    where: { category: category as CatalogCategory },
+    where: whereFor(c),
     orderBy: [{ available: "desc" }, { code: "asc" }],
   });
   return rows.map(toFull);
 }
 
-export async function countsByCategory(): Promise<Record<string, number>> {
-  const grouped = await prisma.catalogItem.groupBy({
-    by: ["category"],
-    _count: { _all: true },
-  });
-  const out: Record<string, number> = {};
-  for (const g of grouped) out[g.category] = g._count._all;
-  return out;
+export async function countsByCollection(): Promise<Record<string, number>> {
+  const entries = await Promise.all(
+    COLLECTIONS.map(async (c) => [c.slug, await prisma.catalogItem.count({ where: whereFor(c) })] as const),
+  );
+  return Object.fromEntries(entries);
 }

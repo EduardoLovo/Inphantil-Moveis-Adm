@@ -1,26 +1,86 @@
 // Metadados de catálogo client-safe (sem dependência de servidor).
 
-export const CATEGORIES = [
-  { value: "APLIQUE", slug: "apliques", label: "Apliques", singular: "aplique", hasQuantity: true, hasFazExterno: false, hasProntaKind: false },
-  { value: "TAPETE", slug: "tapetes", label: "Tapetes", singular: "tapete", hasQuantity: false, hasFazExterno: false, hasProntaKind: false },
-  { value: "CAMA", slug: "camas", label: "Camas", singular: "cama", hasQuantity: false, hasFazExterno: true, hasProntaKind: false },
-  { value: "TECIDO_LENCOL", slug: "tecidos", label: "Tecidos para lençóis", singular: "tecido", hasQuantity: false, hasFazExterno: false, hasProntaKind: false },
-  { value: "PRONTA_ENTREGA", slug: "pronta-entrega", label: "Lençóis, viróis e fronhas (pronta-entrega)", singular: "item", hasQuantity: true, hasFazExterno: false, hasProntaKind: true },
+// Categorias REAIS (onde o CRUD acontece).
+export const CATEGORY_VALUES = [
+  "APLIQUE",
+  "SINTETICO",
+  "TECIDO_LENCOL",
+  "PRONTA_ENTREGA",
 ] as const;
+export type CatalogCategoryValue = (typeof CATEGORY_VALUES)[number];
 
-export type CatalogCategoryValue = (typeof CATEGORIES)[number]["value"];
-export type CategoryMeta = (typeof CATEGORIES)[number];
+export type CategoryMeta = {
+  value: CatalogCategoryValue;
+  singular: string;
+  hasQuantity: boolean;
+  hasFazExterno: boolean;
+  hasCabana: boolean;
+  hasTapete: boolean;
+  hasProntaKind: boolean;
+};
 
-export const CATEGORY_VALUES = CATEGORIES.map((c) => c.value) as [
-  CatalogCategoryValue,
-  ...CatalogCategoryValue[],
+export const CATEGORY_META: Record<CatalogCategoryValue, CategoryMeta> = {
+  APLIQUE: {
+    value: "APLIQUE",
+    singular: "aplique",
+    hasQuantity: true,
+    hasFazExterno: false,
+    hasCabana: true,
+    hasTapete: false,
+    hasProntaKind: false,
+  },
+  SINTETICO: {
+    value: "SINTETICO",
+    singular: "sintético",
+    hasQuantity: false,
+    hasFazExterno: true,
+    hasCabana: false,
+    hasTapete: true,
+    hasProntaKind: false,
+  },
+  TECIDO_LENCOL: {
+    value: "TECIDO_LENCOL",
+    singular: "tecido",
+    hasQuantity: false,
+    hasFazExterno: false,
+    hasCabana: false,
+    hasTapete: false,
+    hasProntaKind: false,
+  },
+  PRONTA_ENTREGA: {
+    value: "PRONTA_ENTREGA",
+    singular: "item",
+    hasQuantity: true,
+    hasFazExterno: false,
+    hasCabana: false,
+    hasTapete: false,
+    hasProntaKind: true,
+  },
+};
+
+// Flags que geram coleções filtradas.
+export type CatalogFlag = "cabana" | "tapete";
+
+// Coleções EXIBIDAS (hub, páginas e futuro mostruário). Algumas são a
+// categoria inteira; outras são a categoria filtrada por uma flag.
+export type Collection = {
+  slug: string;
+  label: string;
+  category: CatalogCategoryValue;
+  flag?: CatalogFlag;
+};
+
+export const COLLECTIONS: Collection[] = [
+  { slug: "apliques", label: "Apliques", category: "APLIQUE" },
+  { slug: "apliques-cabana", label: "Apliques para cabana", category: "APLIQUE", flag: "cabana" },
+  { slug: "sinteticos", label: "Sintéticos", category: "SINTETICO" },
+  { slug: "tapetes", label: "Tapetes", category: "SINTETICO", flag: "tapete" },
+  { slug: "tecidos", label: "Tecidos para lençóis", category: "TECIDO_LENCOL" },
+  { slug: "pronta-entrega", label: "Lençóis, viróis e fronhas (pronta-entrega)", category: "PRONTA_ENTREGA" },
 ];
 
-export function categoryBySlug(slug: string): CategoryMeta | undefined {
-  return CATEGORIES.find((c) => c.slug === slug);
-}
-export function categoryByValue(value: string): CategoryMeta | undefined {
-  return CATEGORIES.find((c) => c.value === value);
+export function collectionBySlug(slug: string): Collection | undefined {
+  return COLLECTIONS.find((c) => c.slug === slug);
 }
 
 export const PRONTA_KINDS = [
@@ -50,6 +110,8 @@ export type CatalogItemFull = {
   available: boolean;
   quantity: number | null;
   fazExterno: boolean;
+  cabana: boolean;
+  tapete: boolean;
   prontaKind: ProntaKind | null;
   createdAt: string;
 };
