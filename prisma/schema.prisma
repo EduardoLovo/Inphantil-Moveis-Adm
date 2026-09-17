@@ -26,7 +26,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  quotes Quote[]
+  quotes         Quote[]
+  shippingQuotes ShippingQuote[]
 
   @@index([role])
 }
@@ -120,4 +121,50 @@ model QuoteItem {
   note        String?          @db.VarChar(500)
 
   @@index([quoteId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Frete — solicitações de cotação de frete (rastreador)
+// ─────────────────────────────────────────────────────────────
+
+model ShippingQuote {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+  // Solicitação (preenchido por quem cria)
+  quoteDetails    String?
+  customerName    String? @db.VarChar(150)
+  customerCpf     String? @db.VarChar(14)
+  customerZipCode String? @db.VarChar(10)
+  customerAddress String? @db.VarChar(255)
+  customerCity    String? @db.VarChar(100)
+  customerState   String? @db.VarChar(2)
+
+  // Cotação (preenchido pelo admin)
+  carrierName       String?  @db.VarChar(150)
+  volumeQuantity    Int?
+  weight            String?  @db.VarChar(50)
+  shippingValue     Decimal? @db.Decimal(10, 2)
+  orderValue        Decimal? @db.Decimal(10, 2)
+  deliveryDeadline  String?  @db.VarChar(50)
+  hasWallProtector  Boolean  @default(false)
+  wallProtectorSize String?
+  hasRug            Boolean  @default(false)
+  rugSize           String?  @db.VarChar(100)
+  hasAccessories    Boolean  @default(false)
+  accessoryQuantity Int?
+  bedSize           String?  @db.VarChar(100)
+  adminNotes        String?
+
+  // Estado
+  isRequested Boolean   @default(false)
+  isConcluded Boolean   @default(false)
+  concludedAt DateTime?
+
+  @@index([createdById])
+  @@index([isConcluded])
+  @@index([createdAt])
 }

@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
-import { Truck } from "lucide-react";
-import { ComingSoon } from "@/components/coming-soon";
+import { PageHeader } from "@/components/page-header";
+import { FreteHub } from "./frete-hub";
 
 export const metadata: Metadata = { title: "Frete" };
 
 export default function FretePage() {
   return (
-    <ComingSoon
-      icon={<Truck className="size-9" />}
-      title="Frete"
-      description="Solicitação, cotações e pesquisa de frete chegam a esta seção."
-    />
+    <div>
+      <PageHeader
+        title="Frete"
+        description="Solicite cotações de frete, acompanhe e exporte o relatório."
+      />
+      <FreteHub />
+    </div>
   );
 }
