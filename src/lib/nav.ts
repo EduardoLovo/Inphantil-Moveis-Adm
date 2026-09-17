@@ -42,7 +42,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Calculadoras", href: "/calculadoras", icon: Calculator, roles: ALL },
       { label: "Protetor de parede", href: "/protetor-parede", icon: ShieldHalf, roles: ALL },
-      { label: "Tapete", href: "/tapete", icon: Rows3, roles: ALL, soon: true },
+      { label: "Tapete", href: "/tapete", icon: Rows3, roles: ALL },
       { label: "Orçamentos", href: "/orcamentos", icon: FileText, roles: ALL, soon: true },
       { label: "Frete", href: "/frete", icon: Truck, roles: ALL, soon: true },
     ],
