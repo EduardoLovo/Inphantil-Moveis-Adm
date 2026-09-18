@@ -45,7 +45,7 @@ export default async function CatalogCollectionPage({
       <PageHeader
         title={collection.label}
         description={
-          collection.flag
+          collection.filter
             ? "Coleção filtrada — itens da categoria marcados com esta característica."
             : "Adicione, edite e controle a disponibilidade dos itens."
         }

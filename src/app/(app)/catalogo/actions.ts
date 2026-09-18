@@ -31,7 +31,7 @@ function normalize(d: CatalogItemInput) {
     quantity: isAplique || isPronta ? d.quantity : null,
     fazExterno: isSintetico ? d.fazExterno : false,
     cabana: isAplique ? d.cabana : false,
-    tapete: isSintetico ? d.tapete : false,
+    apenasTapete: isSintetico ? d.apenasTapete : false,
     prontaKind: isPronta ? d.prontaKind : null,
   };
 }

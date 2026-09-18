@@ -204,8 +204,8 @@ model CatalogItem {
   // Específicos por categoria (nulos/false quando não se aplicam):
   quantity   Int? // APLIQUE, PRONTA_ENTREGA
   fazExterno Boolean            @default(false) // SINTETICO (interno é sempre; externo é a exceção)
-  cabana     Boolean            @default(false) // APLIQUE — também aparece em "Apliques para cabana"
-  tapete     Boolean            @default(false) // SINTETICO — também aparece em "Tapetes"
+  cabana       Boolean          @default(false) // APLIQUE — também aparece em "Apliques para cabana"
+  apenasTapete Boolean          @default(false) @map("tapete") // SINTETICO — se true, aparece SÓ no mostruário de tapetes (fora do de cama)
   prontaKind ProntaEntregaKind? // PRONTA_ENTREGA
 
   createdAt DateTime @default(now())

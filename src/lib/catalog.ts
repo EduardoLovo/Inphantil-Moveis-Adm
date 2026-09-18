@@ -15,7 +15,7 @@ export type CategoryMeta = {
   hasQuantity: boolean;
   hasFazExterno: boolean;
   hasCabana: boolean;
-  hasTapete: boolean;
+  hasApenasTapete: boolean;
   hasProntaKind: boolean;
 };
 
@@ -26,7 +26,7 @@ export const CATEGORY_META: Record<CatalogCategoryValue, CategoryMeta> = {
     hasQuantity: true,
     hasFazExterno: false,
     hasCabana: true,
-    hasTapete: false,
+    hasApenasTapete: false,
     hasProntaKind: false,
   },
   SINTETICO: {
@@ -35,7 +35,7 @@ export const CATEGORY_META: Record<CatalogCategoryValue, CategoryMeta> = {
     hasQuantity: false,
     hasFazExterno: true,
     hasCabana: false,
-    hasTapete: true,
+    hasApenasTapete: true,
     hasProntaKind: false,
   },
   TECIDO_LENCOL: {
@@ -44,7 +44,7 @@ export const CATEGORY_META: Record<CatalogCategoryValue, CategoryMeta> = {
     hasQuantity: false,
     hasFazExterno: false,
     hasCabana: false,
-    hasTapete: false,
+    hasApenasTapete: false,
     hasProntaKind: false,
   },
   PRONTA_ENTREGA: {
@@ -53,31 +53,43 @@ export const CATEGORY_META: Record<CatalogCategoryValue, CategoryMeta> = {
     hasQuantity: true,
     hasFazExterno: false,
     hasCabana: false,
-    hasTapete: false,
+    hasApenasTapete: false,
     hasProntaKind: true,
   },
 };
 
-// Flags que geram coleções filtradas.
-export type CatalogFlag = "cabana" | "tapete";
+// Filtro declarativo por características booleanas do item.
+export type CollectionFilter = {
+  cabana?: boolean;
+  apenasTapete?: boolean;
+};
 
-// Coleções EXIBIDAS (hub, páginas e futuro mostruário). Algumas são a
-// categoria inteira; outras são a categoria filtrada por uma flag.
+// Coleções EXIBIDAS (hub de gestão e mostruário público).
+// - `filter`: aplicado em gestão E mostruário.
+// - `publicFilter`: aplicado SÓ no mostruário (a gestão mostra tudo da categoria).
+// - `inHub`: se aparece no gerenciador de catálogo (default true).
 export type Collection = {
   slug: string;
   label: string;
   category: CatalogCategoryValue;
-  flag?: CatalogFlag;
+  filter?: CollectionFilter;
+  publicFilter?: CollectionFilter;
+  inHub?: boolean;
 };
 
 export const COLLECTIONS: Collection[] = [
   { slug: "apliques", label: "Apliques", category: "APLIQUE" },
-  { slug: "apliques-cabana", label: "Apliques para cabana", category: "APLIQUE", flag: "cabana" },
-  { slug: "sinteticos", label: "Sintéticos", category: "SINTETICO" },
-  { slug: "tapetes", label: "Tapetes", category: "SINTETICO", flag: "tapete" },
+  { slug: "apliques-cabana", label: "Apliques para cabana", category: "APLIQUE", filter: { cabana: true } },
+  // Sintéticos: a gestão mostra todos; o mostruário de "cama" esconde os "apenas tapete".
+  { slug: "sinteticos", label: "Sintéticos", category: "SINTETICO", publicFilter: { apenasTapete: false } },
+  // Tapetes: só no mostruário, com TODOS os sintéticos (independente da flag).
+  { slug: "tapetes", label: "Tapetes", category: "SINTETICO", inHub: false },
   { slug: "tecidos", label: "Tecidos para lençóis", category: "TECIDO_LENCOL" },
   { slug: "pronta-entrega", label: "Lençóis, viróis e fronhas (pronta-entrega)", category: "PRONTA_ENTREGA" },
 ];
+
+/** Coleções gerenciáveis no hub de catálogo. */
+export const HUB_COLLECTIONS = COLLECTIONS.filter((c) => c.inHub !== false);
 
 export function collectionBySlug(slug: string): Collection | undefined {
   return COLLECTIONS.find((c) => c.slug === slug);
@@ -111,7 +123,7 @@ export type CatalogItemFull = {
   quantity: number | null;
   fazExterno: boolean;
   cabana: boolean;
-  tapete: boolean;
+  apenasTapete: boolean;
   prontaKind: ProntaKind | null;
   createdAt: string;
 };

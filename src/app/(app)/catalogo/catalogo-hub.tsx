@@ -14,7 +14,7 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card";
 import { StaggerContainer, StaggerItem } from "@/components/motion/reveal";
-import { COLLECTIONS } from "@/lib/catalog";
+import { HUB_COLLECTIONS } from "@/lib/catalog";
 
 const ICONS: Record<string, LucideIcon> = {
   apliques: Sparkles,
@@ -28,7 +28,7 @@ const ICONS: Record<string, LucideIcon> = {
 export function CatalogoHub({ counts }: { counts: Record<string, number> }) {
   return (
     <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {COLLECTIONS.map((col) => {
+      {HUB_COLLECTIONS.map((col) => {
         const Icon = ICONS[col.slug] ?? Sparkles;
         const count = counts[col.slug] ?? 0;
         return (
@@ -42,7 +42,7 @@ export function CatalogoHub({ counts }: { counts: Record<string, number> }) {
                   <h3 className="font-bold">{col.label}</h3>
                   <p className="mt-1 flex-1 text-sm text-muted-foreground">
                     {count} {count === 1 ? "item" : "itens"}
-                    {col.flag ? " · filtrado" : ""}
+                    {col.filter ? " · filtrado" : ""}
                   </p>
                   <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
                     Gerenciar

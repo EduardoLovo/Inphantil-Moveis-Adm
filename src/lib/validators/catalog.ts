@@ -14,7 +14,7 @@ const base = z.object({
   quantity: z.preprocess(emptyToNull, z.number().int().min(0).nullable()),
   fazExterno: z.boolean(),
   cabana: z.boolean(),
-  tapete: z.boolean(),
+  apenasTapete: z.boolean(),
   prontaKind: z.preprocess(emptyToNull, z.enum(PRONTA_KINDS).nullable()),
 });
 

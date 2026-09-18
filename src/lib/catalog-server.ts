@@ -21,7 +21,7 @@ type Row = {
   quantity: number | null;
   fazExterno: boolean;
   cabana: boolean;
-  tapete: boolean;
+  apenasTapete: boolean;
   prontaKind: string | null;
   createdAt: Date;
 };
@@ -38,23 +38,28 @@ function toFull(r: Row): CatalogItemFull {
     quantity: r.quantity,
     fazExterno: r.fazExterno,
     cabana: r.cabana,
-    tapete: r.tapete,
+    apenasTapete: r.apenasTapete,
     prontaKind: (r.prontaKind as ProntaKind | null) ?? null,
     createdAt: r.createdAt.toISOString(),
   };
 }
 
-function whereFor(c: Collection): Prisma.CatalogItemWhereInput {
+function whereFor(
+  c: Collection,
+  scope: "manage" | "public",
+): Prisma.CatalogItemWhereInput {
   const where: Prisma.CatalogItemWhereInput = {
     category: c.category as CatalogCategory,
+    ...c.filter,
   };
-  if (c.flag) where[c.flag] = true;
+  // Filtro exclusivo do mostruário (a gestão vê a categoria inteira).
+  if (scope === "public") Object.assign(where, c.publicFilter);
   return where;
 }
 
 export async function listCollection(c: Collection): Promise<CatalogItemFull[]> {
   const rows = await prisma.catalogItem.findMany({
-    where: whereFor(c),
+    where: whereFor(c, "manage"),
     orderBy: [{ available: "desc" }, { code: "asc" }],
   });
   return rows.map(toFull);
@@ -62,7 +67,7 @@ export async function listCollection(c: Collection): Promise<CatalogItemFull[]> 
 
 export async function countsByCollection(): Promise<Record<string, number>> {
   const entries = await Promise.all(
-    COLLECTIONS.map(async (c) => [c.slug, await prisma.catalogItem.count({ where: whereFor(c) })] as const),
+    COLLECTIONS.map(async (c) => [c.slug, await prisma.catalogItem.count({ where: whereFor(c, "manage") })] as const),
   );
   return Object.fromEntries(entries);
 }
@@ -71,7 +76,7 @@ export async function countsByCollection(): Promise<Record<string, number>> {
 
 export async function listPublicCollection(c: Collection): Promise<CatalogItemFull[]> {
   const rows = await prisma.catalogItem.findMany({
-    where: { ...whereFor(c), available: true },
+    where: { ...whereFor(c, "public"), available: true },
     orderBy: { code: "asc" },
   });
   return rows.map(toFull);
@@ -81,7 +86,7 @@ export async function publicCountsByCollection(): Promise<Record<string, number>
   const entries = await Promise.all(
     COLLECTIONS.map(
       async (c) =>
-        [c.slug, await prisma.catalogItem.count({ where: { ...whereFor(c), available: true } })] as const,
+        [c.slug, await prisma.catalogItem.count({ where: { ...whereFor(c, "public"), available: true } })] as const,
     ),
   );
   return Object.fromEntries(entries);

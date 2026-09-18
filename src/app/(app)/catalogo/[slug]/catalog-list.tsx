@@ -3,13 +3,30 @@
 import * as React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ImageOff, Loader2, Pencil, Plus, Power, Trash2, X } from "lucide-react";
+import {
+  ImageOff,
+  Loader2,
+  Pencil,
+  Plus,
+  Power,
+  Trash2,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +36,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ImageUploader } from "@/components/upload/image-uploader";
-import { StaggerContainer, StaggerItem } from "@/components/motion/reveal";
 import { cn } from "@/lib/utils";
 import {
   CATEGORY_META,
@@ -74,30 +90,55 @@ export function CatalogList({
   return (
     <div>
       <div className="mb-4 flex justify-end">
-        <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>
+        <Button
+          onClick={() => {
+            setEditing(null);
+            setDialogOpen(true);
+          }}
+        >
           <Plus className="size-4" /> Novo {meta.singular}
         </Button>
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-12 text-center text-sm text-muted-foreground">
-          Nenhum item nesta coleção ainda.
-        </div>
+        <Card>
+          <CardContent className="py-12 text-center text-sm text-muted-foreground">
+            Nenhum item nesta coleção ainda.
+          </CardContent>
+        </Card>
       ) : (
-        <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {items.map((item) => (
-            <StaggerItem key={item.id}>
-              <ItemCard
-                item={item}
-                meta={meta}
-                busy={busyId === item.id}
-                onEdit={() => { setEditing(item); setDialogOpen(true); }}
-                onToggle={() => toggle(item)}
-                onDelete={() => remove(item)}
-              />
-            </StaggerItem>
-          ))}
-        </StaggerContainer>
+        <Card>
+          <CardContent className="px-0 sm:px-6">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[64px]">Imagem</TableHead>
+                  <TableHead>Código</TableHead>
+                  <TableHead>Cor</TableHead>
+                  <TableHead>Características</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.map((item) => (
+                  <ItemRow
+                    key={item.id}
+                    item={item}
+                    meta={meta}
+                    busy={busyId === item.id}
+                    onEdit={() => {
+                      setEditing(item);
+                      setDialogOpen(true);
+                    }}
+                    onToggle={() => toggle(item)}
+                    onDelete={() => remove(item)}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
 
       <ItemDialog
@@ -107,13 +148,16 @@ export function CatalogList({
         editing={editing}
         collection={collection}
         meta={meta}
-        onSaved={() => { setDialogOpen(false); router.refresh(); }}
+        onSaved={() => {
+          setDialogOpen(false);
+          router.refresh();
+        }}
       />
     </div>
   );
 }
 
-function ItemCard({
+function ItemRow({
   item,
   meta,
   busy,
@@ -129,61 +173,89 @@ function ItemCard({
   onDelete: () => void;
 }) {
   return (
-    <div className={cn("overflow-hidden rounded-xl border bg-card", !item.available && "opacity-70")}>
-      <div className="relative aspect-square bg-muted">
-        {item.imageUrl ? (
-          <Image src={item.imageUrl} alt={item.code} fill sizes="220px" className="object-cover" />
-        ) : (
-          <div className="grid h-full place-items-center text-muted-foreground">
-            <ImageOff className="size-8" />
-          </div>
-        )}
-        {busy && (
-          <div className="absolute inset-0 grid place-items-center bg-background/60">
-            <Loader2 className="size-5 animate-spin text-primary" />
-          </div>
-        )}
-      </div>
-      <div className="space-y-2 p-3">
-        <div className="flex items-center justify-between gap-2">
-          <p className="truncate font-bold">{item.code}</p>
-          <Badge variant={item.available ? "success" : "muted"}>
-            {item.available ? "Disponível" : "Indisponível"}
-          </Badge>
+    <TableRow className={cn(!item.available && "opacity-60")}>
+      <TableCell>
+        <div className="relative size-12 overflow-hidden rounded-md border bg-muted">
+          {item.imageUrl ? (
+            <Image
+              src={item.imageUrl}
+              alt={item.code}
+              fill
+              sizes="48px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="grid h-full place-items-center text-muted-foreground">
+              <ImageOff className="size-4" />
+            </div>
+          )}
+          {busy && (
+            <div className="absolute inset-0 grid place-items-center bg-background/60">
+              <Loader2 className="size-4 animate-spin text-primary" />
+            </div>
+          )}
         </div>
-        <p className="text-sm text-muted-foreground">{item.color}</p>
+      </TableCell>
+      <TableCell className="font-semibold">{item.code}</TableCell>
+      <TableCell className="text-muted-foreground">{item.color}</TableCell>
+      <TableCell>
         <div className="flex flex-wrap gap-1.5">
           {meta.hasQuantity && item.quantity != null && (
             <Badge variant="secondary">Qtd: {item.quantity}</Badge>
           )}
           {meta.hasFazExterno && (
-            <Badge variant="secondary">{item.fazExterno ? "Interno + Externo" : "Interno"}</Badge>
+            <Badge variant="secondary">
+              {item.fazExterno ? "Interno + Externo" : "Interno"}
+            </Badge>
           )}
-          {meta.hasCabana && item.cabana && <Badge variant="default">Cabana</Badge>}
-          {meta.hasTapete && item.tapete && <Badge variant="default">Tapete</Badge>}
+          {meta.hasCabana && item.cabana && (
+            <Badge variant="default">Cabana</Badge>
+          )}
+          {meta.hasApenasTapete && item.apenasTapete && (
+            <Badge variant="default">Apenas Tapete</Badge>
+          )}
           {meta.hasProntaKind && item.prontaKind && (
-            <Badge variant="secondary">{PRONTA_KIND_LABEL[item.prontaKind]}</Badge>
+            <Badge variant="secondary">
+              {PRONTA_KIND_LABEL[item.prontaKind]}
+            </Badge>
           )}
         </div>
-        <div className="flex items-center gap-1 pt-1">
-          <Button variant="ghost" size="icon" onClick={onEdit} aria-label="Editar">
+      </TableCell>
+      <TableCell>
+        <Badge variant={item.available ? "success" : "muted"}>
+          {item.available ? "Disponível" : "Indisponível"}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onEdit}
+            aria-label="Editar"
+          >
             <Pencil className="size-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onToggle} aria-label="Disponibilidade">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggle}
+            aria-label="Disponibilidade"
+          >
             <Power className="size-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="ml-auto text-destructive hover:text-destructive"
+            className="text-destructive hover:text-destructive"
             onClick={onDelete}
             aria-label="Excluir"
           >
             <Trash2 className="size-4" />
           </Button>
         </div>
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -206,14 +278,26 @@ function ItemDialog({
   const [code, setCode] = React.useState(editing?.code ?? "");
   const [color, setColor] = React.useState(editing?.color ?? "");
   const [available, setAvailable] = React.useState(editing?.available ?? true);
-  const [quantity, setQuantity] = React.useState(editing?.quantity != null ? String(editing.quantity) : "");
-  const [fazExterno, setFazExterno] = React.useState(editing?.fazExterno ?? false);
+  const [quantity, setQuantity] = React.useState(
+    editing?.quantity != null ? String(editing.quantity) : "",
+  );
+  const [fazExterno, setFazExterno] = React.useState(
+    editing?.fazExterno ?? false,
+  );
   // Ao criar dentro de uma coleção filtrada, já marca a flag.
-  const [cabana, setCabana] = React.useState(editing?.cabana ?? collection.flag === "cabana");
-  const [tapete, setTapete] = React.useState(editing?.tapete ?? collection.flag === "tapete");
-  const [prontaKind, setProntaKind] = React.useState<ProntaKind | "">(editing?.prontaKind ?? "");
+  const [cabana, setCabana] = React.useState(
+    editing?.cabana ?? collection.filter?.cabana === true,
+  );
+  const [apenasTapete, setApenasTapete] = React.useState(
+    editing?.apenasTapete ?? false,
+  );
+  const [prontaKind, setProntaKind] = React.useState<ProntaKind | "">(
+    editing?.prontaKind ?? "",
+  );
   const [image, setImage] = React.useState<{ url: string; key: string } | null>(
-    editing?.imageUrl && editing?.imageKey ? { url: editing.imageUrl, key: editing.imageKey } : null,
+    editing?.imageUrl && editing?.imageKey
+      ? { url: editing.imageUrl, key: editing.imageKey }
+      : null,
   );
   const [pending, setPending] = React.useState(false);
 
@@ -225,11 +309,15 @@ function ItemDialog({
       available,
       imageUrl: image?.url ?? null,
       imageKey: image?.key ?? null,
-      quantity: meta.hasQuantity ? (quantity.trim() === "" ? null : parseInt(quantity, 10)) : null,
+      quantity: meta.hasQuantity
+        ? quantity.trim() === ""
+          ? null
+          : parseInt(quantity, 10)
+        : null,
       fazExterno: meta.hasFazExterno ? fazExterno : false,
       cabana: meta.hasCabana ? cabana : false,
-      tapete: meta.hasTapete ? tapete : false,
-      prontaKind: meta.hasProntaKind ? (prontaKind || null) : null,
+      apenasTapete: meta.hasApenasTapete ? apenasTapete : false,
+      prontaKind: meta.hasProntaKind ? prontaKind || null : null,
     };
     setPending(true);
     const res = isEdit
@@ -248,7 +336,9 @@ function ItemDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar" : "Novo"} {meta.singular}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Editar" : "Novo"} {meta.singular}
+          </DialogTitle>
           <DialogDescription>{collection.label}</DialogDescription>
         </DialogHeader>
 
@@ -259,7 +349,11 @@ function ItemDialog({
             {image ? (
               <div className="relative w-full overflow-hidden rounded-xl border">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={image.url} alt="Prévia" className="max-h-56 w-full object-contain" />
+                <img
+                  src={image.url}
+                  alt="Prévia"
+                  className="max-h-56 w-full object-contain"
+                />
                 <Button
                   type="button"
                   variant="secondary"
@@ -271,7 +365,9 @@ function ItemDialog({
                 </Button>
               </div>
             ) : (
-              <ImageUploader onUploaded={(r) => setImage({ url: r.url, key: r.key })} />
+              <ImageUploader
+                onUploaded={(r) => setImage({ url: r.url, key: r.key })}
+              />
             )}
           </div>
 
@@ -288,17 +384,29 @@ function ItemDialog({
             {meta.hasQuantity && (
               <div className="space-y-2">
                 <Label>Quantidade</Label>
-                <Input inputMode="numeric" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+                <Input
+                  inputMode="numeric"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                />
               </div>
             )}
 
             {meta.hasProntaKind && (
               <div className="space-y-2">
                 <Label>Tipo</Label>
-                <select className={selectClass} value={prontaKind} onChange={(e) => setProntaKind(e.target.value as ProntaKind | "")}>
+                <select
+                  className={selectClass}
+                  value={prontaKind}
+                  onChange={(e) =>
+                    setProntaKind(e.target.value as ProntaKind | "")
+                  }
+                >
                   <option value="">Selecione…</option>
                   {PRONTA_KINDS.map((k) => (
-                    <option key={k} value={k}>{PRONTA_KIND_LABEL[k]}</option>
+                    <option key={k} value={k}>
+                      {PRONTA_KIND_LABEL[k]}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -308,24 +416,40 @@ function ItemDialog({
           <div className="space-y-2">
             {meta.hasFazExterno && (
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={fazExterno} onChange={(e) => setFazExterno(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={fazExterno}
+                  onChange={(e) => setFazExterno(e.target.checked)}
+                />
                 Também faz <strong>externo</strong> (interno todos fazem)
               </label>
             )}
-            {meta.hasTapete && (
+            {meta.hasApenasTapete && (
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={tapete} onChange={(e) => setTapete(e.target.checked)} />
-                Aparece também no catálogo de <strong>Tapetes</strong>
+                <input
+                  type="checkbox"
+                  checked={apenasTapete}
+                  onChange={(e) => setApenasTapete(e.target.checked)}
+                />
+                <strong>Apenas Tapete</strong> (some do mostruário de cama)
               </label>
             )}
             {meta.hasCabana && (
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={cabana} onChange={(e) => setCabana(e.target.checked)} />
+                <input
+                  type="checkbox"
+                  checked={cabana}
+                  onChange={(e) => setCabana(e.target.checked)}
+                />
                 Aparece também em <strong>Apliques para cabana</strong>
               </label>
             )}
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={available}
+                onChange={(e) => setAvailable(e.target.checked)}
+              />
               Disponível
             </label>
           </div>
