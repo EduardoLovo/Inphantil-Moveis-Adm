@@ -4,7 +4,6 @@ import * as React from "react";
 import { ImageOff, ListFilter } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { StaggerContainer, StaggerItem } from "@/components/motion/reveal";
 import { LightboxImage } from "@/components/mostruario/lightbox-image";
 import { cn } from "@/lib/utils";
 import {
@@ -114,49 +113,54 @@ export function MostruarioGallery({
           Nenhum item nesta seleção.
         </div>
       ) : (
-        <StaggerContainer className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {filtered.map((item) => (
-            <StaggerItem key={item.id}>
-              <div className="overflow-hidden rounded-2xl border bg-card">
-                <div className="relative aspect-square bg-muted">
-                  {item.imageUrl ? (
-                    <LightboxImage
-                      src={item.imageUrl}
-                      alt={`${item.code} — ${item.color}`}
-                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 260px"
-                      className="object-cover transition-transform duration-500 hover:scale-105"
-                    />
-                  ) : (
-                    <div className="grid h-full place-items-center text-muted-foreground">
-                      <ImageOff className="size-8" />
-                    </div>
+        <div
+          key={selected ?? "__all__"}
+          className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+        >
+          {filtered.map((item, i) => (
+            <div
+              key={item.id}
+              className="animate-in slide-in-from-bottom-3 overflow-hidden rounded-2xl border bg-card"
+              style={{ animationDelay: `${Math.min(i, 16) * 45}ms` }}
+            >
+              <div className="relative aspect-square bg-muted">
+                {item.imageUrl ? (
+                  <LightboxImage
+                    src={item.imageUrl}
+                    alt={`${item.code} — ${item.color}`}
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 260px"
+                    className="object-cover transition-transform duration-500 hover:scale-105"
+                  />
+                ) : (
+                  <div className="grid h-full place-items-center text-muted-foreground">
+                    <ImageOff className="size-8" />
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1.5 p-3">
+                <p className="font-bold leading-tight">{item.code}</p>
+                <p className="text-sm text-muted-foreground">{item.color}</p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {meta.hasFazExterno && (
+                    <Badge variant="secondary">
+                      {item.fazExterno ? "Interno + Externo" : "Interno"}
+                    </Badge>
+                  )}
+                  {meta.hasProntaKind && item.prontaKind && (
+                    <Badge variant="secondary">
+                      {PRONTA_KIND_LABEL[item.prontaKind]}
+                    </Badge>
+                  )}
+                  {meta.hasTamanho && item.tamanho && (
+                    <Badge variant="default">
+                      {PRONTA_TAMANHO_LABEL[item.tamanho]}
+                    </Badge>
                   )}
                 </div>
-                <div className="space-y-1.5 p-3">
-                  <p className="font-bold leading-tight">{item.code}</p>
-                  <p className="text-sm text-muted-foreground">{item.color}</p>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {meta.hasFazExterno && (
-                      <Badge variant="secondary">
-                        {item.fazExterno ? "Interno + Externo" : "Interno"}
-                      </Badge>
-                    )}
-                    {meta.hasProntaKind && item.prontaKind && (
-                      <Badge variant="secondary">
-                        {PRONTA_KIND_LABEL[item.prontaKind]}
-                      </Badge>
-                    )}
-                    {meta.hasTamanho && item.tamanho && (
-                      <Badge variant="default">
-                        {PRONTA_TAMANHO_LABEL[item.tamanho]}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
               </div>
-            </StaggerItem>
+            </div>
           ))}
-        </StaggerContainer>
+        </div>
       )}
     </div>
   );
