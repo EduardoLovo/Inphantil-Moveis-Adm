@@ -63,9 +63,17 @@ function whereFor(
 export async function listCollection(c: Collection): Promise<CatalogItemFull[]> {
   const rows = await prisma.catalogItem.findMany({
     where: whereFor(c, "manage"),
-    orderBy: [{ available: "desc" }, { code: "asc" }],
   });
-  return rows.map(toFull);
+  // Ordem alfabética por código (ignora maiúsculas/acentos; números na
+  // ordem natural, ex.: AM1 < AM2 < AM10).
+  return rows
+    .map(toFull)
+    .sort((a, b) =>
+      a.code.localeCompare(b.code, "pt-BR", {
+        numeric: true,
+        sensitivity: "base",
+      }),
+    );
 }
 
 export async function countsByCollection(): Promise<Record<string, number>> {
