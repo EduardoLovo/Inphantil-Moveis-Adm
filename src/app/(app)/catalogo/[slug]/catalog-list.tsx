@@ -71,6 +71,9 @@ export function CatalogList({
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<CatalogItemFull | null>(null);
   const [busyId, setBusyId] = React.useState<string | null>(null);
+  // Muda a cada "Novo" para recriar o formulário zerado (evita reaproveitar
+  // os valores do item anterior).
+  const [newNonce, setNewNonce] = React.useState(0);
 
   async function toggle(item: CatalogItemFull) {
     setBusyId(item.id);
@@ -96,6 +99,7 @@ export function CatalogList({
         <Button
           onClick={() => {
             setEditing(null);
+            setNewNonce((n) => n + 1);
             setDialogOpen(true);
           }}
         >
@@ -145,7 +149,7 @@ export function CatalogList({
       )}
 
       <ItemDialog
-        key={editing?.id ?? "new"}
+        key={editing ? editing.id : `new-${newNonce}`}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         editing={editing}
