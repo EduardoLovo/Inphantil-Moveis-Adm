@@ -18,6 +18,7 @@ export function Logo({
           width={40}
           height={40}
           priority
+          unoptimized
           className="size-7 object-contain"
         />
       </span>
