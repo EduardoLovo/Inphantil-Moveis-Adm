@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Menu } from "lucide-react";
 import type { Role } from "@prisma/client";
 
@@ -36,7 +37,9 @@ export function AppShell({
       {/* Sidebar fixa (desktop) */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r bg-card/60 px-4 py-5 backdrop-blur md:flex">
         <div className="px-2 pb-6">
-          <Logo />
+          <Link href="/" aria-label="Início">
+            <Logo />
+          </Link>
         </div>
         <div className="flex-1 overflow-y-auto">
           <SidebarNav role={user.role} />
@@ -61,7 +64,13 @@ export function AppShell({
             <DialogContent className="left-0 top-0 h-full max-w-[17rem] translate-x-0 translate-y-0 rounded-none border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left">
               <DialogTitle className="sr-only">Navegação</DialogTitle>
               <div className="pb-4">
-                <Logo />
+                <Link
+                  href="/"
+                  aria-label="Início"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Logo />
+                </Link>
               </div>
               <div className="overflow-y-auto">
                 <SidebarNav
@@ -73,7 +82,9 @@ export function AppShell({
           </Dialog>
 
           <div className="md:hidden">
-            <Logo withText={false} />
+            <Link href="/" aria-label="Início">
+              <Logo withText={false} />
+            </Link>
           </div>
 
           <div className="ml-auto flex items-center gap-1">
