@@ -58,8 +58,12 @@ export function ChangePasswordForm() {
           placeholder="••••••••"
           {...register("password")}
         />
-        {errors.password && (
+        {errors.password ? (
           <p className="text-xs text-destructive">{errors.password.message}</p>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Mín. 8 caracteres, com maiúscula, minúscula e número.
+          </p>
         )}
       </div>
 
