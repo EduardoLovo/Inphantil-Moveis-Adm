@@ -6,3 +6,18 @@ export const loginSchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
+
+export const changePasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "A nova senha deve ter ao menos 8 caracteres.")
+      .max(72, "Senha muito longa."),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: "As senhas não conferem.",
+    path: ["confirm"],
+  });
+
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

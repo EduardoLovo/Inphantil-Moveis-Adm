@@ -23,6 +23,8 @@ model User {
   passwordHash String
   role         Role     @default(SELLER)
   isActive     Boolean  @default(true)
+  // Exige troca de senha no próximo login (1º acesso ou após reset pelo DEV).
+  mustChangePassword Boolean @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

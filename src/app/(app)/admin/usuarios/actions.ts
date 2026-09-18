@@ -26,7 +26,8 @@ export async function createUser(input: unknown): Promise<ActionResult> {
   try {
     const passwordHash = await bcrypt.hash(password, 12);
     await prisma.user.create({
-      data: { name, email, passwordHash, role },
+      // Novo usuário precisa trocar a senha no primeiro acesso.
+      data: { name, email, passwordHash, role, mustChangePassword: true },
     });
     revalidatePath("/admin/usuarios");
     return { ok: true };
@@ -64,6 +65,8 @@ export async function updateUser(input: unknown): Promise<ActionResult> {
     const data: Prisma.UserUpdateInput = { name, role, isActive };
     if (password && password.length >= 8) {
       data.passwordHash = await bcrypt.hash(password, 12);
+      // Senha redefinida pelo DEV → exige troca no próximo login.
+      data.mustChangePassword = true;
     }
     await prisma.user.update({ where: { id }, data });
     revalidatePath("/admin/usuarios");
