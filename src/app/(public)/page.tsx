@@ -13,7 +13,7 @@ export default function LandingPage() {
       <div className="relative z-10 mx-auto flex min-h-[calc(100vh-8rem)] max-w-6xl flex-col items-center justify-center px-4 py-16 text-center md:px-6">
         <Reveal>
           <Badge variant="secondary" className="mb-5">
-            Inphantil · Cloud
+            Inphantil Móveis
           </Badge>
         </Reveal>
 

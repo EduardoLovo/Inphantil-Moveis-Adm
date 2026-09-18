@@ -12,8 +12,8 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: {
-    default: "Inphantil Cloud",
-    template: "%s · Inphantil Cloud",
+    default: "Inphantil Móveis",
+    template: "%s · Inphantil Móveis",
   },
   description:
     "Painel interno e mostruário da Inphantil — ferramentas, catálogo e vitrine.",
