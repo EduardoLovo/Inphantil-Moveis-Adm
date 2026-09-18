@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ImageOff } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Reveal, StaggerContainer, StaggerItem } from "@/components/motion/reveal";
+import { LightboxImage } from "@/components/mostruario/lightbox-image";
 import {
   CATEGORY_META,
   PRONTA_KIND_LABEL,
@@ -66,10 +66,9 @@ export default async function MostruarioCollectionPage({
                 <div className="overflow-hidden rounded-2xl border bg-card">
                   <div className="relative aspect-square bg-muted">
                     {item.imageUrl ? (
-                      <Image
+                      <LightboxImage
                         src={item.imageUrl}
                         alt={`${item.code} — ${item.color}`}
-                        fill
                         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 260px"
                         className="object-cover transition-transform duration-500 hover:scale-105"
                       />
