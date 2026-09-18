@@ -79,11 +79,14 @@ export type Collection = {
 
 export const COLLECTIONS: Collection[] = [
   { slug: "apliques", label: "Apliques", category: "APLIQUE" },
+  // Cabana: só no mostruário; a gestão é feita pela coleção de Apliques
+  // (flag "Aparece também em Apliques para cabana").
   {
     slug: "apliques-cabana",
     label: "Apliques para cabana",
     category: "APLIQUE",
     filter: { cabana: true },
+    inHub: false,
   },
   // Sintéticos: a gestão mostra todos; o mostruário de "cama" esconde os "apenas tapete".
   {
