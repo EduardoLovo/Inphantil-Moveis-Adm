@@ -14,6 +14,7 @@ import {
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Reveal, StaggerContainer, StaggerItem } from "@/components/motion/reveal";
+import { ConstellationField } from "@/components/motion/constellation-field";
 import { COLLECTIONS } from "@/lib/catalog";
 import { publicCountsByCollection } from "@/lib/catalog-server";
 
@@ -34,8 +35,9 @@ export default async function MostruarioPage() {
   const collections = COLLECTIONS.filter((c) => (counts[c.slug] ?? 0) > 0);
 
   return (
-    <section className="bg-playful">
-      <div className="mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-20">
+    <section className="relative flex-1 overflow-hidden bg-playful">
+      <ConstellationField />
+      <div className="relative z-10 mx-auto max-w-6xl px-4 py-14 md:px-6 md:py-20">
         <Reveal className="mx-auto mb-12 max-w-2xl text-center">
           <h1 className="text-3xl font-extrabold tracking-tight md:text-5xl">
             Nosso <span className="text-gradient">mostruário</span>
