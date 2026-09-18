@@ -51,7 +51,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Protetor de parede", href: "/protetor-parede", icon: ShieldHalf, roles: ALL },
       { label: "Tapete", href: "/tapete", icon: Rows3, roles: ALL },
-      { label: "Cama", href: "/cama", icon: BedDouble, roles: ALL, soon: true },
+      { label: "Cama", href: "/cama", icon: BedDouble, roles: ALL },
     ],
   },
   {
