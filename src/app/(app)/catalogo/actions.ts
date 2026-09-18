@@ -33,6 +33,7 @@ function normalize(d: CatalogItemInput) {
     cabana: isAplique ? d.cabana : false,
     apenasTapete: isSintetico ? d.apenasTapete : false,
     prontaKind: isPronta ? d.prontaKind : null,
+    tamanho: isPronta ? d.tamanho : null,
   };
 }
 

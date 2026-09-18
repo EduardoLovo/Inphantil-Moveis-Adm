@@ -17,6 +17,7 @@ export type CategoryMeta = {
   hasCabana: boolean;
   hasApenasTapete: boolean;
   hasProntaKind: boolean;
+  hasTamanho: boolean;
 };
 
 export const CATEGORY_META: Record<CatalogCategoryValue, CategoryMeta> = {
@@ -28,6 +29,7 @@ export const CATEGORY_META: Record<CatalogCategoryValue, CategoryMeta> = {
     hasCabana: true,
     hasApenasTapete: false,
     hasProntaKind: false,
+    hasTamanho: false,
   },
   SINTETICO: {
     value: "SINTETICO",
@@ -37,6 +39,7 @@ export const CATEGORY_META: Record<CatalogCategoryValue, CategoryMeta> = {
     hasCabana: false,
     hasApenasTapete: true,
     hasProntaKind: false,
+    hasTamanho: false,
   },
   TECIDO_LENCOL: {
     value: "TECIDO_LENCOL",
@@ -46,6 +49,7 @@ export const CATEGORY_META: Record<CatalogCategoryValue, CategoryMeta> = {
     hasCabana: false,
     hasApenasTapete: false,
     hasProntaKind: false,
+    hasTamanho: false,
   },
   PRONTA_ENTREGA: {
     value: "PRONTA_ENTREGA",
@@ -55,6 +59,7 @@ export const CATEGORY_META: Record<CatalogCategoryValue, CategoryMeta> = {
     hasCabana: false,
     hasApenasTapete: false,
     hasProntaKind: true,
+    hasTamanho: true,
   },
 };
 
@@ -64,10 +69,14 @@ export type CollectionFilter = {
   apenasTapete?: boolean;
 };
 
+// Campo do item usado para gerar os botões de filtro do mostruário.
+export type FacetField = "color" | "tamanho";
+
 // Coleções EXIBIDAS (hub de gestão e mostruário público).
 // - `filter`: aplicado em gestão E mostruário.
 // - `publicFilter`: aplicado SÓ no mostruário (a gestão mostra tudo da categoria).
 // - `inHub`: se aparece no gerenciador de catálogo (default true).
+// - `facet`: propriedade que vira os botões de filtro no mostruário (default "color").
 export type Collection = {
   slug: string;
   label: string;
@@ -75,6 +84,7 @@ export type Collection = {
   filter?: CollectionFilter;
   publicFilter?: CollectionFilter;
   inHub?: boolean;
+  facet?: FacetField;
 };
 
 export const COLLECTIONS: Collection[] = [
@@ -107,6 +117,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "pronta-entrega",
     label: "Lençóis, viróis e fronhas (pronta-entrega)",
     category: "PRONTA_ENTREGA",
+    facet: "tamanho",
   },
 ];
 
@@ -134,6 +145,32 @@ export const PRONTA_KIND_LABEL: Record<ProntaKind, string> = {
   FRONHA: "Fronha",
 };
 
+// Tamanhos de cama (pronta-entrega). Ordem = ordem de exibição dos botões.
+export const PRONTA_TAMANHOS = [
+  "FRONHA",
+  "BERCO",
+  "JUNIOR",
+  "SOLTEIRO",
+  "SOLTEIRAO",
+  "VIUVA",
+  "CASAL",
+  "QUEEN",
+  "KING",
+] as const;
+export type ProntaTamanho = (typeof PRONTA_TAMANHOS)[number];
+
+export const PRONTA_TAMANHO_LABEL: Record<ProntaTamanho, string> = {
+  FRONHA: "Fronha",
+  BERCO: "Berço",
+  JUNIOR: "Júnior",
+  SOLTEIRO: "Solteiro",
+  SOLTEIRAO: "Solteirão",
+  VIUVA: "Viúva",
+  CASAL: "Casal",
+  QUEEN: "Queen size",
+  KING: "King size",
+};
+
 export type CatalogItemFull = {
   id: string;
   category: CatalogCategoryValue;
@@ -147,5 +184,19 @@ export type CatalogItemFull = {
   cabana: boolean;
   apenasTapete: boolean;
   prontaKind: ProntaKind | null;
+  tamanho: ProntaTamanho | null;
   createdAt: string;
 };
+
+/**
+ * Normaliza um texto para agrupar valores equivalentes: remove espaços das
+ * pontas, ignora maiúsculas/minúsculas e acentos. Usado para não duplicar
+ * botões de filtro que dizem a mesma coisa (ex.: "Amarelo", "amarelo ").
+ */
+export function normalizeText(s: string): string {
+  return s
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}

@@ -41,10 +41,13 @@ import {
   CATEGORY_META,
   PRONTA_KINDS,
   PRONTA_KIND_LABEL,
+  PRONTA_TAMANHOS,
+  PRONTA_TAMANHO_LABEL,
   type CategoryMeta,
   type CatalogItemFull,
   type Collection,
   type ProntaKind,
+  type ProntaTamanho,
 } from "@/lib/catalog";
 import {
   createCatalogItem,
@@ -219,6 +222,9 @@ function ItemRow({
               {PRONTA_KIND_LABEL[item.prontaKind]}
             </Badge>
           )}
+          {meta.hasTamanho && item.tamanho && (
+            <Badge variant="default">{PRONTA_TAMANHO_LABEL[item.tamanho]}</Badge>
+          )}
         </div>
       </TableCell>
       <TableCell>
@@ -294,6 +300,9 @@ function ItemDialog({
   const [prontaKind, setProntaKind] = React.useState<ProntaKind | "">(
     editing?.prontaKind ?? "",
   );
+  const [tamanho, setTamanho] = React.useState<ProntaTamanho | "">(
+    editing?.tamanho ?? "",
+  );
   const [image, setImage] = React.useState<{ url: string; key: string } | null>(
     editing?.imageUrl && editing?.imageKey
       ? { url: editing.imageUrl, key: editing.imageKey }
@@ -318,6 +327,7 @@ function ItemDialog({
       cabana: meta.hasCabana ? cabana : false,
       apenasTapete: meta.hasApenasTapete ? apenasTapete : false,
       prontaKind: meta.hasProntaKind ? prontaKind || null : null,
+      tamanho: meta.hasTamanho ? tamanho || null : null,
     };
     setPending(true);
     const res = isEdit
@@ -406,6 +416,26 @@ function ItemDialog({
                   {PRONTA_KINDS.map((k) => (
                     <option key={k} value={k}>
                       {PRONTA_KIND_LABEL[k]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {meta.hasTamanho && (
+              <div className="space-y-2">
+                <Label>Tamanho</Label>
+                <select
+                  className={selectClass}
+                  value={tamanho}
+                  onChange={(e) =>
+                    setTamanho(e.target.value as ProntaTamanho | "")
+                  }
+                >
+                  <option value="">Selecione…</option>
+                  {PRONTA_TAMANHOS.map((t) => (
+                    <option key={t} value={t}>
+                      {PRONTA_TAMANHO_LABEL[t]}
                     </option>
                   ))}
                 </select>

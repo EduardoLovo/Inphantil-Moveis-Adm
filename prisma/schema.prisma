@@ -191,6 +191,18 @@ enum ProntaEntregaKind {
   FRONHA
 }
 
+enum ProntaTamanho {
+  FRONHA
+  BERCO
+  JUNIOR
+  SOLTEIRO
+  SOLTEIRAO
+  VIUVA
+  CASAL
+  QUEEN
+  KING
+}
+
 model CatalogItem {
   id       String          @id @default(cuid())
   category CatalogCategory
@@ -209,6 +221,7 @@ model CatalogItem {
   cabana       Boolean          @default(false) // APLIQUE — também aparece em "Apliques para cabana"
   apenasTapete Boolean          @default(false) @map("tapete") // SINTETICO — se true, aparece SÓ no mostruário de tapetes (fora do de cama)
   prontaKind ProntaEntregaKind? // PRONTA_ENTREGA
+  tamanho    ProntaTamanho? // PRONTA_ENTREGA (tamanho da cama)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

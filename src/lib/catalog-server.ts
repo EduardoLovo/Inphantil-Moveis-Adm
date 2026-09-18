@@ -8,6 +8,7 @@ import {
   type CatalogItemFull,
   type Collection,
   type ProntaKind,
+  type ProntaTamanho,
 } from "@/lib/catalog";
 
 type Row = {
@@ -23,6 +24,7 @@ type Row = {
   cabana: boolean;
   apenasTapete: boolean;
   prontaKind: string | null;
+  tamanho: string | null;
   createdAt: Date;
 };
 
@@ -40,6 +42,7 @@ function toFull(r: Row): CatalogItemFull {
     cabana: r.cabana,
     apenasTapete: r.apenasTapete,
     prontaKind: (r.prontaKind as ProntaKind | null) ?? null,
+    tamanho: (r.tamanho as ProntaTamanho | null) ?? null,
     createdAt: r.createdAt.toISOString(),
   };
 }

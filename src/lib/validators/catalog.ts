@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CATEGORY_VALUES, PRONTA_KINDS } from "@/lib/catalog";
+import { CATEGORY_VALUES, PRONTA_KINDS, PRONTA_TAMANHOS } from "@/lib/catalog";
 
 const emptyToNull = (v: unknown) =>
   typeof v === "string" && v.trim() === "" ? null : v;
@@ -16,6 +16,7 @@ const base = z.object({
   cabana: z.boolean(),
   apenasTapete: z.boolean(),
   prontaKind: z.preprocess(emptyToNull, z.enum(PRONTA_KINDS).nullable()),
+  tamanho: z.preprocess(emptyToNull, z.enum(PRONTA_TAMANHOS).nullable()),
 });
 
 function refine(d: z.infer<typeof base>, ctx: z.RefinementCtx) {
@@ -24,6 +25,9 @@ function refine(d: z.infer<typeof base>, ctx: z.RefinementCtx) {
   }
   if (d.category === "PRONTA_ENTREGA" && !d.prontaKind) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Selecione o tipo (lençol, virol, fronha…).", path: ["prontaKind"] });
+  }
+  if (d.category === "PRONTA_ENTREGA" && !d.tamanho) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Selecione o tamanho.", path: ["tamanho"] });
   }
   if ((d.category === "APLIQUE" || d.category === "PRONTA_ENTREGA") && d.quantity == null) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Informe a quantidade.", path: ["quantity"] });
