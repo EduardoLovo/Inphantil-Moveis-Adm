@@ -3,41 +3,43 @@
 import * as React from "react";
 import { toBlob, toPng } from "html-to-image";
 import { motion } from "framer-motion";
-import { BedDouble, Eraser, Camera, Download } from "lucide-react";
+import { BedDouble, Paintbrush, Eraser, Camera, Download } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { listaDeCores } from "@/lib/cores-composicao";
+import { brushCursor } from "@/lib/brush-cursor";
 import { CAMA_REGIONS, type CamaRegionId } from "./cama-data";
-import { CamaRenderer, proxied, type CamaFabric } from "./cama-renderer";
+import { CamaRenderer } from "./cama-renderer";
 
-const ERASER = "__eraser__";
+const SEM_COR = "#ccc";
 
-export function CamaComposer({ fabrics }: { fabrics: CamaFabric[] }) {
-  const [selected, setSelected] = React.useState<string | null>(null);
-  const [fills, setFills] = React.useState<Partial<Record<CamaRegionId, string>>>(
-    {},
-  );
+export function CamaComposer() {
+  const [selectedColor, setSelectedColor] = React.useState(SEM_COR);
+  const [colors, setColors] = React.useState<
+    Partial<Record<CamaRegionId, string>>
+  >({});
   const divRef = React.useRef<HTMLDivElement>(null);
 
-  const fabricsById = React.useMemo(
-    () => new Map(fabrics.map((f) => [f.id, f])),
-    [fabrics],
-  );
+  const isPaintingMode = selectedColor !== SEM_COR;
 
   function pintar(regionId: CamaRegionId) {
-    if (selected === null) return;
-    setFills((prev) => {
-      const next = { ...prev };
-      if (selected === ERASER) delete next[regionId];
-      else next[regionId] = selected;
-      return next;
-    });
+    if (!isPaintingMode) return;
+    setColors((prev) => ({ ...prev, [regionId]: selectedColor }));
   }
 
-  function limpar() {
-    setFills({});
-    setSelected(null);
+  function limparCores() {
+    setColors({});
+    setSelectedColor(SEM_COR);
+  }
+
+  function nomeCor(hex?: string) {
+    if (!hex) return "";
+    const cor = listaDeCores.find(
+      (c) => c.hex.toLowerCase() === hex.toLowerCase(),
+    );
+    return cor ? cor.codigo.toUpperCase() : "";
   }
 
   async function copiarPrint() {
@@ -67,14 +69,15 @@ export function CamaComposer({ fabrics }: { fabrics: CamaFabric[] }) {
     }
   }
 
-  const paintCursor = selected ? "crosshair" : undefined;
+  const paintCursor = isPaintingMode ? brushCursor(selectedColor) : undefined;
 
-  // Resumo dos tecidos aplicados, por região.
+  // Resumo das cores aplicadas, por região.
   const resumo = CAMA_REGIONS.map((r) => {
-    const id = fills[r.id];
-    const f = id ? fabricsById.get(id) : undefined;
-    return f ? `${r.label}: ${f.code.toUpperCase()}` : null;
-  }).filter(Boolean).join("  •  ");
+    const nome = nomeCor(colors[r.id]);
+    return nome ? `${r.label}: ${nome}` : null;
+  })
+    .filter(Boolean)
+    .join("  •  ");
 
   return (
     <div>
@@ -88,63 +91,52 @@ export function CamaComposer({ fabrics }: { fabrics: CamaFabric[] }) {
             Composição de cama
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Escolha um tecido e clique nas partes da cama (colchão, borda) para
-            aplicar.
+            Escolha uma cor e clique nas partes da cama (colchão, borda) para
+            pintar.
           </p>
         </div>
       </div>
 
-      {/* Paleta de tecidos */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+      {/* Paleta */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-semibold">
-          Escolha um tecido e clique no desenho para aplicar
+          Escolha uma cor e clique no desenho para aplicar
         </p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={selected === ERASER ? "default" : "secondary"}
-            size="sm"
-            onClick={() => setSelected((s) => (s === ERASER ? null : ERASER))}
-          >
-            <Eraser className="size-4" /> Borracha
-          </Button>
-          <Button variant="secondary" size="sm" onClick={limpar}>
-            Limpar tudo
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-2 text-xs text-muted-foreground">
+            Pincel:
+            <Paintbrush
+              className="size-5"
+              style={{
+                color: isPaintingMode ? selectedColor : "var(--muted-foreground)",
+              }}
+            />
+          </span>
+          <Button variant="secondary" size="sm" onClick={limparCores}>
+            <Eraser className="size-4" /> Limpar cores
           </Button>
         </div>
       </div>
 
-      {fabrics.length === 0 ? (
-        <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-          Nenhum tecido (sintético) disponível no catálogo ainda.
-        </div>
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {fabrics.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => setSelected(f.id)}
-              title={`${f.code.toUpperCase()} — ${f.color}`}
-              className={cn(
-                "group relative overflow-hidden rounded-lg border transition-all",
-                selected === f.id
-                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background scale-95"
-                  : "hover:scale-105",
-              )}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={proxied(f.imageUrl, 128)}
-                alt={f.code}
-                className="size-16 object-cover"
-              />
-              <span className="absolute inset-x-0 bottom-0 bg-black/55 py-0.5 text-center text-[10px] font-bold text-white">
-                {f.code.toUpperCase()}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="flex flex-wrap justify-center gap-1.5">
+        {listaDeCores.map((cor) => (
+          <button
+            key={cor.codigo}
+            type="button"
+            onClick={() => setSelectedColor(cor.hex)}
+            title={cor.codigo}
+            className={cn(
+              "w-[58px] rounded-lg py-2.5 text-xs font-bold text-[#0c0c0c] transition-all md:w-[68px]",
+              selectedColor === cor.hex
+                ? "shadow-md ring-2 ring-foreground/70 ring-offset-1 ring-offset-background scale-95"
+                : "shadow-sm hover:scale-105",
+            )}
+            style={{ backgroundColor: cor.hex }}
+          >
+            {cor.codigo.toUpperCase()}
+          </button>
+        ))}
+      </div>
 
       {/* Área do desenho (fundo branco, também usado no print) */}
       <motion.div
@@ -159,8 +151,7 @@ export function CamaComposer({ fabrics }: { fabrics: CamaFabric[] }) {
         >
           <div className="w-full max-w-4xl">
             <CamaRenderer
-              fills={fills}
-              fabrics={fabrics}
+              colors={colors}
               onRegionClick={pintar}
               paintCursor={paintCursor}
             />
@@ -176,10 +167,10 @@ export function CamaComposer({ fabrics }: { fabrics: CamaFabric[] }) {
 
       {/* Ações */}
       <div className="flex flex-wrap justify-center gap-3">
-        <Button onClick={copiarPrint} disabled={fabrics.length === 0}>
+        <Button onClick={copiarPrint}>
           <Camera className="size-4" /> Tirar print e copiar
         </Button>
-        <Button variant="outline" onClick={baixarPrint} disabled={fabrics.length === 0}>
+        <Button variant="outline" onClick={baixarPrint}>
           <Download className="size-4" /> Baixar PNG
         </Button>
       </div>
