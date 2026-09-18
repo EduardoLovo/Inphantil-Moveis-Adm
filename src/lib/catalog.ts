@@ -79,13 +79,32 @@ export type Collection = {
 
 export const COLLECTIONS: Collection[] = [
   { slug: "apliques", label: "Apliques", category: "APLIQUE" },
-  { slug: "apliques-cabana", label: "Apliques para cabana", category: "APLIQUE", filter: { cabana: true } },
+  {
+    slug: "apliques-cabana",
+    label: "Apliques para cabana",
+    category: "APLIQUE",
+    filter: { cabana: true },
+  },
   // Sintéticos: a gestão mostra todos; o mostruário de "cama" esconde os "apenas tapete".
-  { slug: "sinteticos", label: "Sintéticos", category: "SINTETICO", publicFilter: { apenasTapete: false } },
+  {
+    slug: "sinteticos",
+    label: "Cores Cama",
+    category: "SINTETICO",
+    publicFilter: { apenasTapete: false },
+  },
   // Tapetes: só no mostruário, com TODOS os sintéticos (independente da flag).
-  { slug: "tapetes", label: "Tapetes", category: "SINTETICO", inHub: false },
+  {
+    slug: "tapetes",
+    label: "Cores Tapete",
+    category: "SINTETICO",
+    inHub: false,
+  },
   { slug: "tecidos", label: "Tecidos para lençóis", category: "TECIDO_LENCOL" },
-  { slug: "pronta-entrega", label: "Lençóis, viróis e fronhas (pronta-entrega)", category: "PRONTA_ENTREGA" },
+  {
+    slug: "pronta-entrega",
+    label: "Lençóis, viróis e fronhas (pronta-entrega)",
+    category: "PRONTA_ENTREGA",
+  },
 ];
 
 /** Coleções gerenciáveis no hub de catálogo. */

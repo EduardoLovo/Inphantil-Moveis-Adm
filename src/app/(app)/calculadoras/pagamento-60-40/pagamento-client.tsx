@@ -14,12 +14,7 @@ import {
   ResultItem,
   ResultRow,
 } from "@/components/calculadoras/calc-parts";
-import {
-  calc6040,
-  formatBRL,
-  parseNum,
-  type Pagamento6040,
-} from "@/lib/calc";
+import { calc6040, formatBRL, parseNum, type Pagamento6040 } from "@/lib/calc";
 
 export function Pagamento6040Client() {
   const [valorEntrada, setValorEntrada] = React.useState("");
@@ -115,9 +110,6 @@ export function Pagamento6040Client() {
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider">
                     Resta a pagar
-                  </p>
-                  <p className="mt-0.5 text-[11px] opacity-70">
-                    Parcelado ou pago na entrega
                   </p>
                 </div>
                 <strong className="text-2xl font-black tabular-nums">
