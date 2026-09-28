@@ -24,7 +24,7 @@ Poder: **DEV > ADMIN > SELLER**.
 | Papel  | Acesso |
 | ------ | ------ |
 | SELLER | Ferramentas internas (calculadoras, protetor, tapete, orçamentos, frete). |
-| ADMIN  | Tudo da área fechada, **menos** gerenciar usuários (+ catálogo, teste de upload). |
+| ADMIN  | Tudo da área fechada, **menos** gerenciar usuários (+ catálogo). |
 | DEV    | Tudo, **incluindo** criar/editar/ativar/desativar usuários. |
 
 A guarda `requireRole()` (`src/lib/rbac.ts`) roda no servidor (Server Actions,
@@ -92,8 +92,6 @@ Todo upload/substituição/exclusão passa pelo serviço central
   protegida por `CRON_SECRET`) tenta de novo **e** varre o bucket removendo o
   que não tem mais referência no banco.
 
-Página protegida para comprovar tudo: **`/admin/upload-teste`**
-(enviar → substituir → excluir).
 
 ### Configurar o R2 (uma vez)
 
@@ -130,7 +128,6 @@ src/
       calculadoras/  protetor-parede/  tapete/
       orcamentos/    frete/            catalogo/     # placeholders
       admin/usuarios/       # SÓ DEV — CRUD de usuários
-      admin/upload-teste/   # teste do ciclo de upload
     api/auth/[...nextauth]/
     api/cron/cleanup-images/
   components/  (ui/ = shadcn, app-shell/, upload/, motion/, ...)

@@ -45,12 +45,3 @@ export type ShippingQuoteFull = {
 };
 
 export type ShippingStatus = "todos" | "abertos" | "concluidos";
-
-/** Resultado da calculadora dos Correios (por serviço). */
-export type ShippingOption = {
-  code: string;
-  name: string;
-  price: number;
-  deadline: number;
-  error?: string;
-};

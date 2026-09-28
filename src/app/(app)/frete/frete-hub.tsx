@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, FilePlus2, PackageSearch, Calculator } from "lucide-react";
+import { ArrowRight, FilePlus2, PackageSearch } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 export function FreteHub() {
   return (
-    <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <StaggerContainer className="grid gap-4 sm:grid-cols-2">
       <StaggerItem>
         <HubCard
           icon={FilePlus2}
@@ -25,14 +25,6 @@ export function FreteHub() {
           title="Solicitações"
           description="Acompanhe, pesquise, cote e exporte as solicitações."
           href="/frete/lista"
-        />
-      </StaggerItem>
-      <StaggerItem>
-        <HubCard
-          icon={Calculator}
-          title="Calculadora Correios"
-          description="Calcula preço e prazo pelos Correios."
-          href="/frete/calculadora"
         />
       </StaggerItem>
     </StaggerContainer>

@@ -7,7 +7,6 @@ import {
   FileText,
   Truck,
   Package,
-  ImageUp,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -63,7 +62,6 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     title: "Administração",
     items: [
-      { label: "Teste de upload", href: "/admin/upload-teste", icon: ImageUp, roles: STAFF },
       { label: "Usuários", href: "/admin/usuarios", icon: Users, roles: DEV_ONLY },
     ],
   },
