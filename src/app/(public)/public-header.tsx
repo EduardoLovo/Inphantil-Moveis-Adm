@@ -7,13 +7,14 @@ import { LogIn } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 /**
  * Header da área pública. No mostruário (páginas que os clientes veem) o
  * botão "Entrar" some e o logo deixa de ser clicável, para não induzirem a
- * tentar acessar a área interna.
+ * tentar acessar a área interna. Com sessão ativa, "Entrar" vira "Sair".
  */
-export function PublicHeader() {
+export function PublicHeader({ loggedIn }: { loggedIn: boolean }) {
   const pathname = usePathname();
   const isShowcase = pathname.startsWith("/mostruario");
 
@@ -34,7 +35,8 @@ export function PublicHeader() {
         </nav>
         <div className="ml-auto flex items-center gap-1">
           <ThemeToggle />
-          {!isShowcase && (
+          {!isShowcase && loggedIn && <SignOutButton />}
+          {!isShowcase && !loggedIn && (
             <Button size="sm" asChild>
               <Link href="/login">
                 <LogIn className="size-4" />

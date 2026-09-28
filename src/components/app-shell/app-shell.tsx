@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { SidebarNav } from "@/components/app-shell/sidebar-nav";
 import { UserMenu } from "@/components/app-shell/user-menu";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 
 type ShellUser = {
   name?: string | null;
@@ -94,6 +95,7 @@ export function AppShell({
               email={user.email}
               role={user.role}
             />
+            <SignOutButton compact className="ml-1" />
           </div>
         </header>
 

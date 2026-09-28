@@ -1,14 +1,17 @@
+import { auth } from "@/lib/auth";
 import { PublicHeader } from "./public-header";
 
 /** Layout público (vitrine): limpo, sem sidebar. */
-export default function PublicLayout({
+export default async function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+
   return (
     <div className="flex min-h-screen flex-col">
-      <PublicHeader />
+      <PublicHeader loggedIn={!!session?.user} />
 
       <main className="flex flex-1 flex-col">{children}</main>
 
