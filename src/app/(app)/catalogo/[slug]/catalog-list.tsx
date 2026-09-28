@@ -36,6 +36,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ImageUploader } from "@/components/upload/image-uploader";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { cn } from "@/lib/utils";
 import {
   CATEGORY_META,
@@ -71,6 +72,9 @@ export function CatalogList({
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<CatalogItemFull | null>(null);
   const [busyId, setBusyId] = React.useState<string | null>(null);
+  // Item mantido após fechar o modal, para o título não piscar na animação.
+  const [excluindo, setExcluindo] = React.useState<CatalogItemFull | null>(null);
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
   // Muda a cada "Novo" para recriar o formulário zerado (evita reaproveitar
   // os valores do item anterior).
   const [newNonce, setNewNonce] = React.useState(0);
@@ -139,7 +143,10 @@ export function CatalogList({
                       setDialogOpen(true);
                     }}
                     onToggle={() => toggle(item)}
-                    onDelete={() => remove(item)}
+                    onDelete={() => {
+                      setExcluindo(item);
+                      setConfirmOpen(true);
+                    }}
                   />
                 ))}
               </TableBody>
@@ -159,6 +166,14 @@ export function CatalogList({
           setDialogOpen(false);
           router.refresh();
         }}
+      />
+
+      <ConfirmDeleteDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={`Excluir ${excluindo?.code ?? "item"}?`}
+        description="O item e a imagem dele serão apagados. Ação irreversível."
+        onConfirm={() => remove(excluindo!)}
       />
     </div>
   );

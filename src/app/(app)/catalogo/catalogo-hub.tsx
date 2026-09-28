@@ -9,6 +9,7 @@ import {
   Rows3,
   Scissors,
   PackageCheck,
+  Palette,
   type LucideIcon,
 } from "lucide-react";
 
@@ -23,14 +24,47 @@ const ICONS: Record<string, LucideIcon> = {
   tapetes: Rows3,
   tecidos: Scissors,
   "pronta-entrega": PackageCheck,
+  "cores-digitais": Palette,
 };
 
-export function CatalogoHub({ counts }: { counts: Record<string, number> }) {
+type HubCard = {
+  slug: string;
+  label: string;
+  count: number;
+  filtered: boolean;
+  unit: [string, string];
+};
+
+export function CatalogoHub({
+  counts,
+  coresCount,
+}: {
+  counts: Record<string, number>;
+  coresCount: number;
+}) {
+  const cards: HubCard[] = [
+    ...HUB_COLLECTIONS.map((col) => ({
+      slug: col.slug,
+      label: col.label,
+      count: counts[col.slug] ?? 0,
+      filtered: !!col.filter,
+      unit: ["item", "itens"] as [string, string],
+    })),
+    // Paleta única das composições (tabela própria, fora do CatalogItem).
+    {
+      slug: "cores-digitais",
+      label: "Cores digitais",
+      count: coresCount,
+      filtered: false,
+      unit: ["cor", "cores"],
+    },
+  ];
+
   return (
     <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {HUB_COLLECTIONS.map((col) => {
+      {cards.map((col) => {
         const Icon = ICONS[col.slug] ?? Sparkles;
-        const count = counts[col.slug] ?? 0;
+        const count = col.count;
         return (
           <StaggerItem key={col.slug}>
             <Link href={`/catalogo/${col.slug}`} className="block h-full">
@@ -41,8 +75,8 @@ export function CatalogoHub({ counts }: { counts: Record<string, number> }) {
                   </span>
                   <h3 className="font-bold">{col.label}</h3>
                   <p className="mt-1 flex-1 text-sm text-muted-foreground">
-                    {count} {count === 1 ? "item" : "itens"}
-                    {col.filter ? " · filtrado" : ""}
+                    {count} {count === 1 ? col.unit[0] : col.unit[1]}
+                    {col.filtered ? " · filtrado" : ""}
                   </p>
                   <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
                     Gerenciar

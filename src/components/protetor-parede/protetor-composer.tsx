@@ -8,20 +8,14 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { listaDeCores } from "@/lib/cores-composicao";
+import type { Cor } from "@/lib/cores-composicao";
 import { brushCursor } from "@/lib/brush-cursor";
 import { catalogo, coresDoDesenho } from "./catalogo";
 import { DesenhoRenderer } from "./desenho-renderer";
 
 const SEM_COR = "#ccc";
 
-// Cores indisponíveis apenas na composição de Protetores de Parede.
-const CORES_EXCLUIDAS = ["l11", "cz26n", "cz25n", "az11"];
-const coresProtetores = listaDeCores.filter(
-  (c) => !CORES_EXCLUIDAS.includes(c.codigo),
-);
-
-export function ProtetorComposer() {
+export function ProtetorComposer({ cores }: { cores: Cor[] }) {
   const [modeloId, setModeloId] = React.useState(catalogo[0].id);
   const [tamanhoId, setTamanhoId] = React.useState(catalogo[0].tamanhos[0].id);
   const [ladoId, setLadoId] = React.useState(catalogo[0].tamanhos[0].lados[0].id);
@@ -64,7 +58,7 @@ export function ProtetorComposer() {
   function getColorName(colorId: string) {
     const hex = svgColors[colorId];
     if (!hex) return "";
-    const cor = listaDeCores.find(
+    const cor = cores.find(
       (c) => c.hex.toLowerCase() === hex.toLowerCase(),
     );
     return cor ? cor.codigo.toUpperCase() : "";
@@ -216,7 +210,7 @@ export function ProtetorComposer() {
         </div>
 
         <div className="flex flex-wrap justify-center gap-1.5">
-          {coresProtetores.map((cor) => (
+          {cores.map((cor) => (
             <button
               key={cor.codigo}
               type="button"

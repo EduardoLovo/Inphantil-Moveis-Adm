@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { listaDeCores } from "@/lib/cores-composicao";
+import type { Cor } from "@/lib/cores-composicao";
 import { brushCursor } from "@/lib/brush-cursor";
 
 // Módulo do quadradinho (cm). A última coluna/linha recebe o resto.
@@ -30,7 +30,7 @@ function tamanhos(total: number): number[] {
   return out;
 }
 
-export function TapeteComposer() {
+export function TapeteComposer({ cores }: { cores: Cor[] }) {
   const [comprimento, setComprimento] = React.useState("87");
   const [largura, setLargura] = React.useState("50");
   const [selectedColor, setSelectedColor] = React.useState(SEM_COR);
@@ -55,7 +55,7 @@ export function TapeteComposer() {
   Object.values(cellColors).forEach((h) => {
     contagem[h] = (contagem[h] || 0) + 1;
   });
-  const coresUsadas = listaDeCores.filter((c) => contagem[c.hex] > 0);
+  const coresUsadas = cores.filter((c) => contagem[c.hex] > 0);
 
   const isPaintingMode = selectedColor !== SEM_COR;
   const paintCursor = isPaintingMode ? brushCursor(selectedColor) : undefined;
@@ -121,7 +121,7 @@ export function TapeteComposer() {
   }
 
   const corAtualNome =
-    listaDeCores.find((c) => c.hex === selectedColor)?.codigo.toUpperCase() ??
+    cores.find((c) => c.hex === selectedColor)?.codigo.toUpperCase() ??
     "nenhuma";
 
   return (
@@ -203,7 +203,7 @@ export function TapeteComposer() {
 
       {/* Paleta */}
       <div className="mt-5 flex flex-wrap justify-center gap-1.5 md:justify-start">
-        {listaDeCores.map((cor) => (
+        {cores.map((cor) => (
           <button
             key={cor.codigo}
             type="button"

@@ -4,6 +4,7 @@ import { Role } from "@prisma/client";
 import { PageHeader } from "@/components/page-header";
 import { guardPage } from "@/lib/guard";
 import { countsByCollection } from "@/lib/catalog-server";
+import { countCoresDigitais } from "@/lib/cores-server";
 import { CatalogoHub } from "./catalogo-hub";
 
 export const metadata: Metadata = { title: "Catálogo" };
@@ -11,7 +12,10 @@ export const dynamic = "force-dynamic";
 
 export default async function CatalogoPage() {
   await guardPage([Role.DEV, Role.ADMIN]);
-  const counts = await countsByCollection();
+  const [counts, coresCount] = await Promise.all([
+    countsByCollection(),
+    countCoresDigitais("manage"),
+  ]);
 
   return (
     <div>
@@ -19,7 +23,7 @@ export default async function CatalogoPage() {
         title="Catálogo"
         description="Gerencie os itens que alimentam o mostruário público."
       />
-      <CatalogoHub counts={counts} />
+      <CatalogoHub counts={counts} coresCount={coresCount} />
     </div>
   );
 }

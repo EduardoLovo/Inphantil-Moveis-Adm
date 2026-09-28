@@ -8,14 +8,14 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { listaDeCores } from "@/lib/cores-composicao";
+import type { Cor } from "@/lib/cores-composicao";
 import { brushCursor } from "@/lib/brush-cursor";
 import { CAMA_REGIONS, type CamaRegionId } from "./cama-data";
 import { CamaRenderer } from "./cama-renderer";
 
 const SEM_COR = "#ccc";
 
-export function CamaComposer() {
+export function CamaComposer({ cores }: { cores: Cor[] }) {
   const [selectedColor, setSelectedColor] = React.useState(SEM_COR);
   const [colors, setColors] = React.useState<
     Partial<Record<CamaRegionId, string>>
@@ -36,7 +36,7 @@ export function CamaComposer() {
 
   function nomeCor(hex?: string) {
     if (!hex) return "";
-    const cor = listaDeCores.find(
+    const cor = cores.find(
       (c) => c.hex.toLowerCase() === hex.toLowerCase(),
     );
     return cor ? cor.codigo.toUpperCase() : "";
@@ -119,7 +119,7 @@ export function CamaComposer() {
       </div>
 
       <div className="flex flex-wrap justify-center gap-1.5">
-        {listaDeCores.map((cor) => (
+        {cores.map((cor) => (
           <button
             key={cor.codigo}
             type="button"

@@ -1,0 +1,83 @@
+-- CreateTable
+CREATE TABLE "CorDigital" (
+    "id" TEXT NOT NULL,
+    "codigo" VARCHAR(20) NOT NULL,
+    "cor" VARCHAR(40) NOT NULL,
+    "hex" VARCHAR(7) NOT NULL,
+    "ativa" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "CorDigital_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CorDigital_codigo_key" ON "CorDigital"("codigo");
+
+-- CreateIndex
+CREATE INDEX "CorDigital_ativa_idx" ON "CorDigital"("ativa");
+
+-- Paleta inicial (antes fixa em src/lib/cores-composicao.ts)
+INSERT INTO "CorDigital" ("id", "codigo", "cor", "hex", "ativa", "updatedAt") VALUES
+  ('cd_am1', 'AM1', 'Amarelo', '#ffd653', true, CURRENT_TIMESTAMP),
+  ('cd_am14', 'AM14', 'Amarelo', '#f4e0ad', true, CURRENT_TIMESTAMP),
+  ('cd_am19', 'AM19', 'Amarelo', '#eedc9c', true, CURRENT_TIMESTAMP),
+  ('cd_am21', 'AM21', 'Amarelo', '#e6d3a6', true, CURRENT_TIMESTAMP),
+  ('cd_am24', 'AM24', 'Amarelo', '#e7e0d1', true, CURRENT_TIMESTAMP),
+  ('cd_az1', 'AZ1', 'Azul', '#3b3d4b', true, CURRENT_TIMESTAMP),
+  ('cd_az3', 'AZ3', 'Azul', '#586c8a', true, CURRENT_TIMESTAMP),
+  ('cd_az5', 'AZ5', 'Azul', '#415997', true, CURRENT_TIMESTAMP),
+  ('cd_az6', 'AZ6', 'Azul', '#718db1', true, CURRENT_TIMESTAMP),
+  ('cd_az10', 'AZ10', 'Azul', '#9ebdd0', true, CURRENT_TIMESTAMP),
+  ('cd_az11', 'AZ11', 'Azul', '#c4ced6', true, CURRENT_TIMESTAMP),
+  ('cd_b3', 'B3', 'Bege', '#a49d90', true, CURRENT_TIMESTAMP),
+  ('cd_b6', 'B6', 'Bege', '#c4bcad', true, CURRENT_TIMESTAMP),
+  ('cd_b8', 'B8', 'Bege', '#dad6cb', true, CURRENT_TIMESTAMP),
+  ('cd_b10', 'B10', 'Bege', '#e1d7c6', true, CURRENT_TIMESTAMP),
+  ('cd_b19', 'B19', 'Bege', '#baaa95', true, CURRENT_TIMESTAMP),
+  ('cd_bc1', 'BC1', 'Branco', '#ffffff', true, CURRENT_TIMESTAMP),
+  ('cd_bc6', 'BC6', 'Branco', '#e9e9e7', true, CURRENT_TIMESTAMP),
+  ('cd_cz1', 'CZ1', 'Cinza', '#505557', true, CURRENT_TIMESTAMP),
+  ('cd_cz3', 'CZ3', 'Cinza', '#999a98', true, CURRENT_TIMESTAMP),
+  ('cd_cz6', 'CZ6', 'Cinza', '#b4b7ba', true, CURRENT_TIMESTAMP),
+  ('cd_cz25n', 'CZ25N', 'Cinza', '#bfc6c9', true, CURRENT_TIMESTAMP),
+  ('cd_cz26n', 'CZ26N', 'Cinza', '#cbcbcb', true, CURRENT_TIMESTAMP),
+  ('cd_l2', 'L2', 'Lilás', '#795999', true, CURRENT_TIMESTAMP),
+  ('cd_l3', 'L3', 'Lilás', '#bca0cc', true, CURRENT_TIMESTAMP),
+  ('cd_l5', 'L5', 'Lilás', '#c4aed0', true, CURRENT_TIMESTAMP),
+  ('cd_l11', 'L11', 'Lilás', '#d4c7d9', true, CURRENT_TIMESTAMP),
+  ('cd_lj2', 'LJ2', 'Laranja', '#d26a3e', true, CURRENT_TIMESTAMP),
+  ('cd_lj3', 'LJ3', 'Laranja', '#f6ad99', true, CURRENT_TIMESTAMP),
+  ('cd_lj7', 'LJ7', 'Laranja', '#ebc594', true, CURRENT_TIMESTAMP),
+  ('cd_lj11', 'LJ11', 'Laranja', '#de948f', true, CURRENT_TIMESTAMP),
+  ('cd_lj21', 'LJ21', 'Laranja', '#f8bf9a', true, CURRENT_TIMESTAMP),
+  ('cd_m3', 'M3', 'Mostarda', '#bc9d6e', true, CURRENT_TIMESTAMP),
+  ('cd_r1', 'R1', 'Rosa', '#ce567e', true, CURRENT_TIMESTAMP),
+  ('cd_r3', 'R3', 'Rosa', '#f7b9c2', true, CURRENT_TIMESTAMP),
+  ('cd_r7', 'R7', 'Rosa', '#f3d4df', true, CURRENT_TIMESTAMP),
+  ('cd_r12', 'R12', 'Rosa', '#e0c7d2', true, CURRENT_TIMESTAMP),
+  ('cd_r16', 'R16', 'Rosa', '#d4a299', true, CURRENT_TIMESTAMP),
+  ('cd_r17', 'R17', 'Rosa', '#cda7a0', true, CURRENT_TIMESTAMP),
+  ('cd_r22', 'R22', 'Rosa', '#efc5be', true, CURRENT_TIMESTAMP),
+  ('cd_r24', 'R24', 'Rosa', '#e7b7cf', true, CURRENT_TIMESTAMP),
+  ('cd_r25', 'R25', 'Rosa', '#ce9694', true, CURRENT_TIMESTAMP),
+  ('cd_r32', 'R32', 'Rosa', '#decdbf', true, CURRENT_TIMESTAMP),
+  ('cd_r33', 'R33', 'Rosa', '#ead2c6', true, CURRENT_TIMESTAMP),
+  ('cd_rb1', 'RB1', 'Rosa bebê', '#e1b8b9', true, CURRENT_TIMESTAMP),
+  ('cd_rb2', 'RB2', 'Rosa bebê', '#e9c8ca', true, CURRENT_TIMESTAMP),
+  ('cd_t1', 'T1', 'Tifany', '#94dbe0', true, CURRENT_TIMESTAMP),
+  ('cd_t2', 'T2', 'Tifany', '#00adad', true, CURRENT_TIMESTAMP),
+  ('cd_t12', 'T12', 'Tifany', '#bdd6d9', true, CURRENT_TIMESTAMP),
+  ('cd_vd1', 'VD1', 'Verde', '#817d6a', true, CURRENT_TIMESTAMP),
+  ('cd_vd6n', 'VD6N', 'Verde', '#808a73', true, CURRENT_TIMESTAMP),
+  ('cd_vd7n', 'VD7N', 'Verde', '#829e86', true, CURRENT_TIMESTAMP),
+  ('cd_vd16', 'VD16', 'Verde', '#a7ceb9', true, CURRENT_TIMESTAMP),
+  ('cd_vd21', 'VD21', 'Verde', '#a3bca6', true, CURRENT_TIMESTAMP),
+  ('cd_vd22', 'VD22', 'Verde', '#a3ac9b', true, CURRENT_TIMESTAMP),
+  ('cd_vd23', 'VD23', 'Verde', '#a8decc', true, CURRENT_TIMESTAMP),
+  ('cd_vd25', 'VD25', 'Verde', '#bfcab4', true, CURRENT_TIMESTAMP),
+  ('cd_vd36', 'VD36', 'Verde', '#a8d0bd', true, CURRENT_TIMESTAMP),
+  ('cd_vd39', 'VD39', 'Verde', '#bdd5bc', true, CURRENT_TIMESTAMP),
+  ('cd_vm1', 'VM1', 'Vermelho', '#7a393e', true, CURRENT_TIMESTAMP),
+  ('cd_vm3', 'VM3', 'Vermelho', '#863339', true, CURRENT_TIMESTAMP),
+  ('cd_vm5', 'VM5', 'Vermelho', '#cc333d', true, CURRENT_TIMESTAMP);

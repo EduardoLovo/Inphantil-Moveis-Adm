@@ -8,6 +8,7 @@ import {
   Rows3,
   Scissors,
   PackageCheck,
+  Palette,
   Store,
   type LucideIcon,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import { Reveal, StaggerContainer, StaggerItem } from "@/components/motion/revea
 import { ConstellationField } from "@/components/motion/constellation-field";
 import { COLLECTIONS } from "@/lib/catalog";
 import { publicCountsByCollection } from "@/lib/catalog-server";
+import { countCoresDigitais } from "@/lib/cores-server";
 
 export const metadata: Metadata = { title: "Mostruário" };
 export const dynamic = "force-dynamic";
@@ -28,11 +30,20 @@ const ICONS: Record<string, LucideIcon> = {
   tapetes: Rows3,
   tecidos: Scissors,
   "pronta-entrega": PackageCheck,
+  "cores-digitais": Palette,
 };
 
 export default async function MostruarioPage() {
-  const counts = await publicCountsByCollection();
-  const collections = COLLECTIONS.filter((c) => (counts[c.slug] ?? 0) > 0);
+  const [counts, coresCount] = await Promise.all([
+    publicCountsByCollection(),
+    countCoresDigitais("public"),
+  ]);
+  // "Cores digitais" vem de tabela própria (paleta das composições).
+  counts["cores-digitais"] = coresCount;
+  const collections = [
+    ...COLLECTIONS.map((c) => ({ slug: c.slug, label: c.label })),
+    { slug: "cores-digitais", label: "Cores digitais" },
+  ].filter((c) => (counts[c.slug] ?? 0) > 0);
 
   return (
     <section className="relative flex-1 overflow-hidden bg-playful">

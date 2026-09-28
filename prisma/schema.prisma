@@ -229,3 +229,18 @@ model CatalogItem {
   @@index([category])
   @@index([category, available])
 }
+
+// Paleta única de cores: usada nas composições (Protetor, Tapete, Cama)
+// e no catálogo/mostruário "Cores digitais".
+model CorDigital {
+  id     String  @id @default(cuid())
+  codigo String  @unique @db.VarChar(20) // ex.: AM1
+  cor    String  @db.VarChar(40) // família, ex.: Amarelo
+  hex    String  @db.VarChar(7) // ex.: #ffd653
+  ativa  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ativa])
+}
