@@ -416,7 +416,8 @@ function ItemDialog({
                 <Input
                   inputMode="numeric"
                   value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
+                  // Só dígitos: ignora letras, sinais e separadores.
+                  onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ""))}
                 />
               </div>
             )}

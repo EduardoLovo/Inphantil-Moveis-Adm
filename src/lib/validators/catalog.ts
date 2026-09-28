@@ -11,7 +11,14 @@ const base = z.object({
   imageUrl: z.preprocess(emptyToNull, z.string().url().nullable()),
   imageKey: z.preprocess(emptyToNull, z.string().max(300).nullable()),
   available: z.boolean(),
-  quantity: z.preprocess(emptyToNull, z.number().int().min(0).nullable()),
+  quantity: z.preprocess(
+    emptyToNull,
+    z
+      .number({ invalid_type_error: "Quantidade deve ser um número inteiro." })
+      .int("Quantidade deve ser um número inteiro.")
+      .min(0, "Quantidade não pode ser negativa.")
+      .nullable(),
+  ),
   fazExterno: z.boolean(),
   cabana: z.boolean(),
   apenasTapete: z.boolean(),
