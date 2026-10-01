@@ -8,6 +8,7 @@ import {
   Truck,
   Package,
   Users,
+  FileSpreadsheet,
   type LucideIcon,
 } from "lucide-react";
 import { Role } from "@prisma/client";
@@ -63,6 +64,7 @@ export const NAV_GROUPS: NavGroup[] = [
     title: "Administração",
     items: [
       { label: "Usuários", href: "/admin/usuarios", icon: Users, roles: DEV_ONLY },
+      { label: "Relatórios", href: "/admin/relatorios", icon: FileSpreadsheet, roles: STAFF },
     ],
   },
 ];

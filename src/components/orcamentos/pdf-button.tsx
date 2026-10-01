@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import type { QuoteFull } from "@/lib/quote";
 import { getQuotePdfData } from "@/app/(app)/orcamentos/actions";
+import { trackLoading } from "@/components/feedback/global-loading";
 
 /** Gera o PDF do orçamento. Aceita os dados completos ou apenas o id
  *  (nesse caso busca via Server Action antes de gerar). */
@@ -42,7 +43,7 @@ export function PdfButton({
       }
       if (!data) return;
       const { generateQuotePdf } = await import("@/lib/quote-pdf");
-      await generateQuotePdf(data);
+      await trackLoading(generateQuotePdf(data));
     } catch {
       toast.error("Não foi possível gerar o PDF.");
     } finally {

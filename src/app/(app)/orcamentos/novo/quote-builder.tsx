@@ -38,6 +38,7 @@ import {
   SELLER_MAX_DISCOUNT_PERCENT,
 } from "@/lib/quote-pricing";
 import { fuzzyFilter } from "@/lib/search";
+import { trackLoading } from "@/components/feedback/global-loading";
 import { updateQuote } from "../actions";
 import { createQuote } from "./actions";
 
@@ -310,8 +311,7 @@ export function QuoteBuilder({
     }
     setPdfLoading(true);
     try {
-      const { generateQuotePdf } = await import("@/lib/quote-pdf");
-      await generateQuotePdf(data);
+      await trackLoading(import("@/lib/quote-pdf").then((m) => m.generateQuotePdf(data)));
     } catch {
       toast.error("Não foi possível gerar o PDF.");
     } finally {

@@ -37,6 +37,10 @@ export default auth((req) => {
   if (pathname.startsWith("/admin/usuarios") && role !== "DEV") {
     return NextResponse.redirect(new URL("/dashboard", nextUrl));
   }
+  // /admin/relatorios: DEV e ADMIN.
+  if (pathname.startsWith("/admin/relatorios") && role !== "DEV" && role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/dashboard", nextUrl));
+  }
 
   return NextResponse.next();
 });
