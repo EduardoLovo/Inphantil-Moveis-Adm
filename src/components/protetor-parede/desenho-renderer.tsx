@@ -18,6 +18,29 @@ interface Props {
 const COR_PADRAO = "#ccc";
 
 /**
+ * Multiplica a espessura original das linhas de todos os desenhos.
+ * Fator (e não valor fixo) porque cada desenho foi exportado numa escala.
+ */
+const ESPESSURA_LINHA = 7;
+
+const strokeWidthOf = (w?: string) => {
+  const n = parseFloat(w ?? "");
+  return Number.isFinite(n) ? n * ESPESSURA_LINHA : undefined;
+};
+
+/**
+ * Amplia o viewBox para a linha mais grossa caber inteira nas bordas
+ * (metade da linha fica para fora do contorno) + uma folga de 2%.
+ */
+function viewBoxComMargem(viewBox: string, paths: { strokeWidth?: string }[]): string {
+  const [x, y, w, h] = viewBox.trim().split(/[\s,]+/).map(Number);
+  if ([x, y, w, h].some((n) => !Number.isFinite(n))) return viewBox;
+  const maxLinha = Math.max(0, ...paths.map((p) => strokeWidthOf(p.strokeWidth) ?? 0));
+  const m = maxLinha / 2 + Math.max(w, h) * 0.02;
+  return `${x - m} ${y - m} ${w + m * 2} ${h + m * 2}`;
+}
+
+/**
  * Renderizador único para todos os desenhos de protetor de parede.
  * Regiões com `colorId` são pintáveis; paths decorativos mantêm cor fixa
  * e ignoram cliques.
@@ -41,7 +64,7 @@ export function DesenhoRenderer({
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="h-auto w-full max-w-[820px] drop-shadow-sm"
-        viewBox={data.viewBox}
+        viewBox={viewBoxComMargem(data.viewBox, data.paths)}
         shapeRendering="geometricPrecision"
         textRendering="geometricPrecision"
         imageRendering="optimizeQuality"
@@ -61,7 +84,7 @@ export function DesenhoRenderer({
               d={p.d}
               fill={fill}
               stroke={p.stroke}
-              strokeWidth={p.strokeWidth}
+              strokeWidth={strokeWidthOf(p.strokeWidth)}
               strokeMiterlimit={22.9256}
               onClick={pintavel ? onClick : undefined}
               className={pintavel ? "transition-opacity hover:opacity-80" : undefined}
