@@ -11,10 +11,28 @@ import {
 } from "@/lib/quote-pricing";
 
 // Identidade Inphantil
-const GREEN: [number, number, number] = [28, 36, 25]; // #1c2419
-const GREEN_SOFT: [number, number, number] = [49, 59, 47]; // #313b2f
+type RGB = [number, number, number];
+const DARK_SOFT: RGB = [58, 58, 62]; // #3a3a3e
+const HEADER_FROM: RGB = [24, 24, 26]; // degradê do cabeçalho (esquerda)
+const HEADER_TO: RGB = [82, 82, 88]; // degradê do cabeçalho (direita)
 const YELLOW: [number, number, number] = [255, 214, 57]; // #ffd639
-const GRAY: [number, number, number] = [120, 120, 120];
+const GRAY: RGB = [120, 120, 120];
+
+/** Degradê horizontal (jsPDF não tem gradiente simples: faixas finas interpoladas). */
+function gradientRect(doc: jsPDF, x: number, y: number, w: number, h: number, from: RGB, to: RGB) {
+  const steps = 120;
+  const stepW = w / steps;
+  for (let i = 0; i < steps; i++) {
+    const t = i / (steps - 1);
+    doc.setFillColor(
+      Math.round(from[0] + (to[0] - from[0]) * t),
+      Math.round(from[1] + (to[1] - from[1]) * t),
+      Math.round(from[2] + (to[2] - from[2]) * t),
+    );
+    // +0.2 de sobreposição evita frestas entre as faixas
+    doc.rect(x + i * stepW, y, stepW + 0.2, h, "F");
+  }
+}
 
 const num = (v: unknown) => Number(v ?? 0) || 0;
 const brl = (v: unknown) =>
@@ -61,31 +79,27 @@ export async function generateQuotePdf(quote: QuoteFull) {
   const marginX = 14;
 
   // ---------- Cabeçalho ----------
-  doc.setFillColor(...GREEN);
-  doc.rect(0, 0, pageW, 40, "F");
+  const HEADER_H = 40;
+  gradientRect(doc, 0, 0, pageW, HEADER_H, HEADER_FROM, HEADER_TO);
+  // filete na cor da marca fechando o cabeçalho
+  doc.setFillColor(...YELLOW);
+  doc.rect(0, HEADER_H, pageW, 1.2, "F");
 
-  // Logo (elefantes) à esquerda, com o nome "INPHANTIL" embaixo.
-  const LOGO_W = 24;
-  const LOGO_H = LOGO_W * (765 / 1119); // proporção de /public/logo.png
-  const logo = await loadImageAsDataURL("/logo.png");
+  // Logo (elefantes + "INPHANTIL") à esquerda.
+  const LOGO_H = 27;
+  const LOGO_W = LOGO_H * (989 / 866); // proporção de /public/logopdf.png
+  const logo = await loadImageAsDataURL("/logopdf.png");
   let hasLogo = false;
   if (logo) {
     try {
-      doc.addImage(logo, "PNG", marginX, 6.5, LOGO_W, LOGO_H, "logo", "FAST");
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.5);
-      doc.setTextColor(...YELLOW);
-      doc.text("INPHANTIL", marginX + LOGO_W / 2, 6.5 + LOGO_H + 5, {
-        align: "center",
-        charSpace: 0.6,
-      });
+      doc.addImage(logo, "PNG", marginX, (HEADER_H - LOGO_H) / 2, LOGO_W, LOGO_H, "logo", "FAST");
       hasLogo = true;
     } catch {
       /* ignora logo inválida */
     }
   }
 
-  const textX = hasLogo ? marginX + LOGO_W + 8 : marginX;
+  const textX = hasLogo ? marginX + LOGO_W + 7 : marginX;
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(17);
@@ -115,7 +129,7 @@ export async function generateQuotePdf(quote: QuoteFull) {
 
   // ---------- Título ----------
   let y = 50;
-  doc.setTextColor(...GREEN_SOFT);
+  doc.setTextColor(...DARK_SOFT);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(15);
   doc.text("ORÇAMENTO", marginX, y);
@@ -194,7 +208,7 @@ export async function generateQuotePdf(quote: QuoteFull) {
     body,
     theme: "grid",
     headStyles: {
-      fillColor: GREEN_SOFT,
+      fillColor: DARK_SOFT,
       textColor: [255, 255, 255],
       fontStyle: "bold",
       fontSize: 9,
@@ -248,8 +262,7 @@ export async function generateQuotePdf(quote: QuoteFull) {
     doc.text(value, boxX + boxW - 4, ly, { align: "right" });
     ly += 6;
   });
-  doc.setFillColor(...GREEN);
-  doc.rect(boxX, ly - 1, boxW, 11, "F");
+  gradientRect(doc, boxX, ly - 1, boxW, 11, HEADER_FROM, HEADER_TO);
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
@@ -258,7 +271,7 @@ export async function generateQuotePdf(quote: QuoteFull) {
   doc.text(brl(totalPrazo), boxX + boxW - 4, ly + 6.5, { align: "right" });
 
   // Formas de pagamento (esquerda)
-  doc.setTextColor(...GREEN_SOFT);
+  doc.setTextColor(...DARK_SOFT);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.text("Formas de pagamento", marginX, finalY + 4);
@@ -275,7 +288,7 @@ export async function generateQuotePdf(quote: QuoteFull) {
   // 1) À vista
   let py = finalY + 13;
   doc.setFontSize(10);
-  doc.setTextColor(...GREEN_SOFT);
+  doc.setTextColor(...DARK_SOFT);
   doc.text("À vista", marginX, py);
   doc.setTextColor(40, 40, 40);
   doc.setFontSize(12);
@@ -300,7 +313,7 @@ export async function generateQuotePdf(quote: QuoteFull) {
   py += 7;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  doc.setTextColor(...GREEN_SOFT);
+  doc.setTextColor(...DARK_SOFT);
   doc.text("No crédito — 1x", marginX, py);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(40, 40, 40);
@@ -325,7 +338,7 @@ export async function generateQuotePdf(quote: QuoteFull) {
     py += 9;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.setTextColor(...GREEN_SOFT);
+    doc.setTextColor(...DARK_SOFT);
     const rangeLabel = maxInstallments >= 3 ? `2x a ${maxInstallments}x` : "2x";
     doc.text(`No crédito — ${rangeLabel}`, marginX, py);
     py += 6;
@@ -376,7 +389,7 @@ export async function generateQuotePdf(quote: QuoteFull) {
     doc.text(freightLines, marginX, freightTop);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
-    doc.setTextColor(...GREEN_SOFT);
+    doc.setTextColor(...DARK_SOFT);
     doc.text("Validade do orçamento: 3 dias úteis.", marginX, validityY);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
