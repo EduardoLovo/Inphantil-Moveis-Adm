@@ -13,22 +13,32 @@ import {
 // Identidade Inphantil
 type RGB = [number, number, number];
 const DARK_SOFT: RGB = [58, 58, 62]; // #3a3a3e
-const HEADER_FROM: RGB = [24, 24, 26]; // degradê do cabeçalho (esquerda)
-const HEADER_TO: RGB = [82, 82, 88]; // degradê do cabeçalho (direita)
-const YELLOW: [number, number, number] = [255, 214, 57]; // #ffd639
+const PANEL: RGB = [92, 92, 92]; // #5c5c5c — fundo do cabeçalho da tabela e do TOTAL
+type GradientStop = [offset: number, color: RGB];
+// linear-gradient(90deg, #5c5c5c 0%, #707070 49%, #b3b3b3 100%)
+const HEADER_GRADIENT: GradientStop[] = [
+  [0, [92, 92, 92]],
+  [0.49, [112, 112, 112]],
+  [1, [179, 179, 179]],
+];
+const YELLOW: RGB = [254, 254, 133]; // #fefe85 (mesma cor da logo)
 const GRAY: RGB = [120, 120, 120];
 
+/** Cor do degradê na posição t (0–1), interpolando entre as paradas. */
+function colorAt(stops: GradientStop[], t: number): RGB {
+  const i = Math.max(1, stops.findIndex(([o]) => o >= t));
+  const [o0, c0] = stops[i - 1];
+  const [o1, c1] = stops[i];
+  const k = o1 === o0 ? 0 : (t - o0) / (o1 - o0);
+  return [0, 1, 2].map((j) => Math.round(c0[j] + (c1[j] - c0[j]) * k)) as RGB;
+}
+
 /** Degradê horizontal (jsPDF não tem gradiente simples: faixas finas interpoladas). */
-function gradientRect(doc: jsPDF, x: number, y: number, w: number, h: number, from: RGB, to: RGB) {
+function gradientRect(doc: jsPDF, x: number, y: number, w: number, h: number, stops: GradientStop[]) {
   const steps = 120;
   const stepW = w / steps;
   for (let i = 0; i < steps; i++) {
-    const t = i / (steps - 1);
-    doc.setFillColor(
-      Math.round(from[0] + (to[0] - from[0]) * t),
-      Math.round(from[1] + (to[1] - from[1]) * t),
-      Math.round(from[2] + (to[2] - from[2]) * t),
-    );
+    doc.setFillColor(...colorAt(stops, i / (steps - 1)));
     // +0.2 de sobreposição evita frestas entre as faixas
     doc.rect(x + i * stepW, y, stepW + 0.2, h, "F");
   }
@@ -80,7 +90,7 @@ export async function generateQuotePdf(quote: QuoteFull) {
 
   // ---------- Cabeçalho ----------
   const HEADER_H = 40;
-  gradientRect(doc, 0, 0, pageW, HEADER_H, HEADER_FROM, HEADER_TO);
+  gradientRect(doc, 0, 0, pageW, HEADER_H, HEADER_GRADIENT);
   // filete na cor da marca fechando o cabeçalho
   doc.setFillColor(...YELLOW);
   doc.rect(0, HEADER_H, pageW, 1.2, "F");
@@ -106,7 +116,7 @@ export async function generateQuotePdf(quote: QuoteFull) {
   doc.text("INPHANTIL MÓVEIS", textX, 15);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
-  doc.setTextColor(255, 214, 57);
+  doc.setTextColor(...YELLOW);
   doc.text("CNPJ 03.761.683/0001-98", textX, 21);
   doc.setTextColor(220, 220, 220);
   doc.text("WhatsApp (61) 98238-8828  ·  sac@inphantil.com.br", textX, 26);
@@ -114,13 +124,14 @@ export async function generateQuotePdf(quote: QuoteFull) {
   doc.text("Rua Armando da Silva 515 - Jardim Rebouças", textX, 30.5);
 
   const dataStr = new Date(quote.createdAt).toLocaleDateString("pt-BR");
-  doc.setTextColor(255, 255, 255);
+  // lado direito do degradê é claro: texto escuro para manter o contraste
+  doc.setTextColor(33, 33, 35);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.text(quote.number, pageW - marginX, 14, { align: "right" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
-  doc.setTextColor(220, 220, 220);
+  doc.setTextColor(50, 50, 52);
   doc.text(`Data: ${dataStr}`, pageW - marginX, 20, { align: "right" });
   const updatedStr = new Date(quote.updatedAt).toLocaleDateString("pt-BR");
   if (updatedStr !== dataStr) {
@@ -208,7 +219,7 @@ export async function generateQuotePdf(quote: QuoteFull) {
     body,
     theme: "grid",
     headStyles: {
-      fillColor: DARK_SOFT,
+      fillColor: PANEL,
       textColor: [255, 255, 255],
       fontStyle: "bold",
       fontSize: 9,
@@ -262,7 +273,8 @@ export async function generateQuotePdf(quote: QuoteFull) {
     doc.text(value, boxX + boxW - 4, ly, { align: "right" });
     ly += 6;
   });
-  gradientRect(doc, boxX, ly - 1, boxW, 11, HEADER_FROM, HEADER_TO);
+  doc.setFillColor(...PANEL);
+  doc.rect(boxX, ly - 1, boxW, 11, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);

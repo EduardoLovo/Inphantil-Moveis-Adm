@@ -90,7 +90,7 @@ export function QuotesList({
                         <Pencil className="size-4" />
                       </Link>
                     </Button>
-                    <DeleteButton id={q.id} number={q.number} />
+                    {isStaff && <DeleteButton id={q.id} number={q.number} />}
                   </div>
                 </TableCell>
               </TableRow>

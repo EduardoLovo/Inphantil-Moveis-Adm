@@ -50,6 +50,7 @@ export default async function OrcamentoEditPage({
     dimensions: p.dimensions,
   }));
 
+  const isManager = hasRole(user.role, [Role.DEV, Role.ADMIN]);
   const wasUpdated =
     new Date(quote.updatedAt).getTime() - new Date(quote.createdAt).getTime() > 60_000;
 
@@ -89,12 +90,12 @@ export default async function OrcamentoEditPage({
             </div>
           </div>
         </div>
-        <QuoteActions quote={quote} />
+        {isManager && <QuoteActions quote={quote} />}
       </div>
 
       <QuoteBuilder
         products={options}
-        isManager={hasRole(user.role, [Role.DEV, Role.ADMIN])}
+        isManager={isManager}
         sellerName={quote.sellerName}
         quote={quote}
         editableProductIds={editable.map((p) => p.id)}
