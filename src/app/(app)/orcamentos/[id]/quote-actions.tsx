@@ -15,7 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { PdfButton } from "@/components/orcamentos/pdf-button";
 import type { QuoteFull } from "@/lib/quote";
 import { deleteQuote } from "../actions";
 
@@ -38,10 +37,9 @@ export function QuoteActions({ quote }: { quote: QuoteFull }) {
 
   return (
     <div className="flex items-center gap-2">
-      <PdfButton quote={quote} label="Gerar PDF" variant="default" />
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="text-destructive hover:text-destructive">
+          <Button variant="outline" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
             <Trash2 className="size-4" /> Excluir
           </Button>
         </DialogTrigger>

@@ -56,6 +56,7 @@ export async function getQuoteFull(
     customerName: q.customerName,
     sellerName: q.seller.name,
     createdAt: q.createdAt.toISOString(),
+    updatedAt: q.updatedAt.toISOString(),
     installments: q.installments,
     discountPercent: Number(q.discountPercent ?? 0),
     discountFixed: Number(q.discountFixed),
@@ -66,6 +67,8 @@ export async function getQuoteFull(
     discountValue: Number(q.discountValue),
     total: Number(q.total),
     items: q.items.map((i) => ({
+      id: i.id,
+      quoteProductId: i.quoteProductId,
       name: i.name,
       sku: i.sku,
       measureType: i.measureType as MeasureType,

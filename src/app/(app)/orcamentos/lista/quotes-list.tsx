@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, Loader2, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -78,13 +78,18 @@ export function QuotesList({
                   {new Date(q.createdAt).toLocaleDateString("pt-BR")}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center justify-end gap-1.5">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/orcamentos/${q.id}`} aria-label="Ver">
-                        <Eye className="size-4" />
+                  <div className="flex items-center justify-end gap-0.5">
+                    <PdfButton quoteId={q.id} iconOnly />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-9 text-muted-foreground"
+                      asChild
+                    >
+                      <Link href={`/orcamentos/${q.id}`} aria-label="Editar" title="Editar">
+                        <Pencil className="size-4" />
                       </Link>
                     </Button>
-                    <PdfButton quoteId={q.id} />
                     <DeleteButton id={q.id} number={q.number} />
                   </div>
                 </TableCell>
@@ -118,7 +123,13 @@ function DeleteButton({ id, number }: { id: number; number: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-9 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          aria-label="Excluir"
+          title="Excluir"
+        >
           <Trash2 className="size-4" />
         </Button>
       </DialogTrigger>

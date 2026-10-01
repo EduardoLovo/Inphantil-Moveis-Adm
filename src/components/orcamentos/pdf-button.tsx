@@ -16,12 +16,15 @@ export function PdfButton({
   label = "PDF",
   variant = "outline",
   size = "sm",
+  iconOnly = false,
 }: {
   quote?: QuoteFull;
   quoteId?: number;
   label?: string;
   variant?: ButtonProps["variant"];
   size?: ButtonProps["size"];
+  /** Só o ícone (ex.: coluna de ações da lista). */
+  iconOnly?: boolean;
 }) {
   const [loading, setLoading] = React.useState(false);
 
@@ -47,9 +50,27 @@ export function PdfButton({
     }
   }
 
+  const icon = loading ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />;
+
+  if (iconOnly) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={go}
+        disabled={loading}
+        aria-label="Baixar PDF"
+        title="Baixar PDF"
+        className="size-9 text-muted-foreground"
+      >
+        {icon}
+      </Button>
+    );
+  }
+
   return (
     <Button variant={variant} size={size} onClick={go} disabled={loading}>
-      {loading ? <Loader2 className="size-4 animate-spin" /> : <FileText className="size-4" />}
+      {icon}
       {label}
     </Button>
   );

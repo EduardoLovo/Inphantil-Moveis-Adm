@@ -64,16 +64,28 @@ export async function generateQuotePdf(quote: QuoteFull) {
   doc.setFillColor(...GREEN);
   doc.rect(0, 0, pageW, 40, "F");
 
-  const logo = await loadImageAsDataURL("/logo2.png");
+  // Logo (elefantes) à esquerda, com o nome "INPHANTIL" embaixo.
+  const LOGO_W = 24;
+  const LOGO_H = LOGO_W * (765 / 1119); // proporção de /public/logo.png
+  const logo = await loadImageAsDataURL("/logo.png");
+  let hasLogo = false;
   if (logo) {
     try {
-      doc.addImage(logo, "PNG", marginX, 8, 18, 18);
+      doc.addImage(logo, "PNG", marginX, 6.5, LOGO_W, LOGO_H, "logo", "FAST");
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...YELLOW);
+      doc.text("INPHANTIL", marginX + LOGO_W / 2, 6.5 + LOGO_H + 5, {
+        align: "center",
+        charSpace: 0.6,
+      });
+      hasLogo = true;
     } catch {
       /* ignora logo inválida */
     }
   }
 
-  const textX = logo ? marginX + 24 : marginX;
+  const textX = hasLogo ? marginX + LOGO_W + 8 : marginX;
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(17);
@@ -96,6 +108,10 @@ export async function generateQuotePdf(quote: QuoteFull) {
   doc.setFontSize(8.5);
   doc.setTextColor(220, 220, 220);
   doc.text(`Data: ${dataStr}`, pageW - marginX, 20, { align: "right" });
+  const updatedStr = new Date(quote.updatedAt).toLocaleDateString("pt-BR");
+  if (updatedStr !== dataStr) {
+    doc.text(`Atualizado: ${updatedStr}`, pageW - marginX, 25, { align: "right" });
+  }
 
   // ---------- Título ----------
   let y = 50;

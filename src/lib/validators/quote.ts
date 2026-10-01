@@ -1,11 +1,15 @@
 import { z } from "zod";
 
 export const quoteItemPayloadSchema = z.object({
-  quoteProductId: z.number().int().positive(),
+  quoteProductId: z.number().int().positive().optional(),
+  // Item já salvo no orçamento (edição): mantém o snapshot de nome/preço.
+  existingItemId: z.number().int().positive().optional(),
   quantity: z.number().int().positive().optional(),
   measure: z.number().positive().optional(),
   unitPrice: z.number().positive().optional(), // só produtos de valor editável
   note: z.string().trim().max(500).optional(),
+}).refine((i) => i.quoteProductId != null || i.existingItemId != null, {
+  message: "Item sem produto.",
 });
 
 export const createQuoteSchema = z.object({

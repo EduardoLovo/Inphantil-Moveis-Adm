@@ -21,6 +21,9 @@ export function formatQuoteNumber(id: number): string {
 
 // Formas serializáveis (server → client) de um orçamento completo.
 export type QuoteItemFull = {
+  id: number;
+  /** Produto de origem (null se o produto foi apagado do catálogo). */
+  quoteProductId: number | null;
   name: string;
   sku: string;
   measureType: MeasureType;
@@ -38,6 +41,7 @@ export type QuoteFull = {
   customerName: string;
   sellerName: string;
   createdAt: string;
+  updatedAt: string;
   installments: number | null;
   discountPercent: number;
   discountFixed: number;

@@ -31,7 +31,7 @@ export default async function NovoOrcamentoPage() {
   }));
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-6xl">
       <Link
         href="/orcamentos"
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"

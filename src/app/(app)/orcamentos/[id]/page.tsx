@@ -1,35 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CalendarDays, History, Pencil, UserRound } from "lucide-react";
+import { Role } from "@prisma/client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { requireUser } from "@/lib/rbac";
+import { requireUser, hasRole } from "@/lib/rbac";
+import { prisma } from "@/lib/prisma";
 import { getQuoteFull } from "@/lib/quotes-server";
-import { MEASURE_LABEL, type QuoteItemFull } from "@/lib/quote";
-import { formatBRL } from "@/lib/calc";
-import { quotePreview } from "@/lib/quote-pricing";
+import type { MeasureType } from "@/lib/quote";
+import { QuoteBuilder, type ProductOption } from "../novo/quote-builder";
 import { QuoteActions } from "./quote-actions";
 
-export const metadata: Metadata = { title: "Orçamento" };
+export const metadata: Metadata = { title: "Editar orçamento" };
 export const dynamic = "force-dynamic";
 
-function qtyLabel(it: QuoteItemFull) {
-  if (it.measureType === "UNIDADE") return `${it.quantity ?? 0} un`;
-  const unit = it.measureType === "METRO_QUADRADO" ? "m²" : "m";
-  return `${(it.measure ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} ${unit}`;
-}
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 
-export default async function OrcamentoViewPage({
+export default async function OrcamentoEditPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -42,17 +30,31 @@ export default async function OrcamentoViewPage({
   const quote = await getQuoteFull(numId, user);
   if (!quote) notFound();
 
-  const preview = quotePreview({
-    subtotal: quote.subtotal,
-    shippingValue: quote.shippingValue,
-    discountPercent: quote.discountPercent,
-    discountFixed: quote.discountFixed,
-    oneInstallmentDiscount: quote.oneInstallmentDiscount,
-    maxInstallments: quote.installments ?? 10,
-  });
+  const usedIds = quote.items.flatMap((i) => i.quoteProductId ?? []);
+  const [products, editable] = await Promise.all([
+    prisma.quoteProduct.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
+    // Inclui inativos: o item salvo continua com valor editável se o produto era assim.
+    prisma.quoteProduct.findMany({
+      where: { id: { in: usedIds }, isPriceEditable: true },
+      select: { id: true },
+    }),
+  ]);
+
+  const options: ProductOption[] = products.map((p) => ({
+    id: p.id,
+    name: p.name,
+    sku: p.sku,
+    price: p.price != null ? Number(p.price) : null,
+    isPriceEditable: p.isPriceEditable,
+    measureType: p.measureType as MeasureType,
+    dimensions: p.dimensions,
+  }));
+
+  const wasUpdated =
+    new Date(quote.updatedAt).getTime() - new Date(quote.createdAt).getTime() > 60_000;
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-6xl pb-24">
       <Link
         href="/orcamentos/lista"
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -60,127 +62,43 @@ export default async function OrcamentoViewPage({
         <ArrowLeft className="size-4" /> Orçamentos
       </Link>
 
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-            {quote.number}
-          </h1>
-          <p className="mt-1 text-muted-foreground">
-            {quote.customerName} · {new Date(quote.createdAt).toLocaleDateString("pt-BR")}
-            {" · "}Vendedor(a): {quote.sellerName}
-          </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4 rounded-2xl border bg-card px-5 py-4 shadow-sm">
+        <div className="flex items-center gap-4">
+          <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <Pencil className="size-5" />
+          </span>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-2xl font-black tracking-tight">{quote.number}</h1>
+              <span className="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-bold text-accent-foreground">
+                Editando
+              </span>
+            </div>
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarDays className="size-3.5" /> Criado em {fmtDate(quote.createdAt)}
+              </span>
+              {wasUpdated && (
+                <span className="inline-flex items-center gap-1.5">
+                  <History className="size-3.5" /> Atualizado em {fmtDate(quote.updatedAt)}
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1.5">
+                <UserRound className="size-3.5" /> {quote.sellerName}
+              </span>
+            </div>
+          </div>
         </div>
         <QuoteActions quote={quote} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
-        {/* Itens */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Itens</CardTitle>
-          </CardHeader>
-          <CardContent className="px-0 sm:px-6">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Produto</TableHead>
-                  <TableHead>Qtd / Medida</TableHead>
-                  <TableHead className="text-right">Unit.</TableHead>
-                  <TableHead className="text-right">Subtotal</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {quote.items.map((it, i) => (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <span className="font-medium">{it.name}</span>
-                      <span className="block text-xs text-muted-foreground">
-                        {it.sku ? `${it.sku} · ` : ""}
-                        {MEASURE_LABEL[it.measureType]}
-                        {it.dimensions ? ` · ${it.dimensions}` : ""}
-                      </span>
-                      {it.note && (
-                        <span className="block text-xs italic text-muted-foreground">
-                          Obs.: {it.note}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{qtyLabel(it)}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatBRL(it.unitPrice)}
-                    </TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums">
-                      {formatBRL(it.lineTotal)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        {/* Resumo */}
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle>Pagamento</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-semibold tabular-nums">{formatBRL(preview.subtotal)}</span>
-              </div>
-              {preview.discountValue > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Desconto à vista</span>
-                  <span className="font-semibold tabular-nums">− {formatBRL(preview.discountValue)}</span>
-                </div>
-              )}
-              {preview.shippingValue > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    Frete{quote.shippingZipCode ? ` (${quote.shippingZipCode})` : ""}
-                  </span>
-                  <span className="font-semibold tabular-nums">+ {formatBRL(preview.shippingValue)}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="rounded-xl bg-primary px-4 py-3 text-primary-foreground">
-              <p className="text-xs font-bold uppercase tracking-wider">À vista</p>
-              <p className="text-2xl font-black tabular-nums">{formatBRL(preview.totalVista)}</p>
-            </div>
-
-            <div>
-              <p className="mb-1.5 text-sm font-bold">No crédito</p>
-              <ul className="space-y-1 text-sm">
-                {preview.installments.map((line) => (
-                  <li key={line.n} className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-muted-foreground">
-                      {line.n}x{" "}
-                      {line.n === 1
-                        ? line.desconto1x && (
-                            <Badge variant="success" className="ml-1">−4%</Badge>
-                          )
-                        : (
-                            <span className={line.comJuros ? "text-amber-600" : "text-[color:var(--success)]"}>
-                              {line.comJuros ? "c/ juros" : "s/ juros"}
-                            </span>
-                          )}
-                    </span>
-                    <span className="font-semibold tabular-nums">
-                      {formatBRL(line.parcela)}
-                      {line.comJuros && (
-                        <span className="font-normal text-muted-foreground"> (tot. {formatBRL(line.total)})</span>
-                      )}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <QuoteBuilder
+        products={options}
+        isManager={hasRole(user.role, [Role.DEV, Role.ADMIN])}
+        sellerName={quote.sellerName}
+        quote={quote}
+        editableProductIds={editable.map((p) => p.id)}
+      />
     </div>
   );
 }
