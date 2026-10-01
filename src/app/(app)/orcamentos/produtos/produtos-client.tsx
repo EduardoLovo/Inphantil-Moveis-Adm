@@ -40,6 +40,8 @@ import {
 import { cn } from "@/lib/utils";
 import { MEASURE_LABEL, MEASURE_TYPES, type MeasureType } from "@/lib/quote";
 import { formatBRL, parseNum } from "@/lib/calc";
+import { fuzzyFilter } from "@/lib/search";
+import { SearchInput } from "@/components/ui/search-input";
 import {
   createQuoteProduct,
   setQuoteProductActive,
@@ -64,6 +66,22 @@ export function ProdutosClient({ products }: { products: ProductRow[] }) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<ProductRow | null>(null);
   const [busyId, setBusyId] = React.useState<number | null>(null);
+  const [query, setQuery] = React.useState("");
+
+  const filtered = React.useMemo(
+    () =>
+      fuzzyFilter(products, query, (p) =>
+        [
+          p.name,
+          p.sku,
+          p.dimensions,
+          MEASURE_LABEL[p.measureType],
+          p.isPriceEditable ? "editável" : p.price != null ? formatBRL(p.price) : "",
+          p.isActive ? "ativo" : "inativo",
+        ].join(" "),
+      ),
+    [products, query],
+  );
 
   function openCreate() {
     setEditing(null);
@@ -96,74 +114,91 @@ export function ProdutosClient({ products }: { products: ProductRow[] }) {
             Nenhum produto cadastrado. Crie o primeiro para montar orçamentos.
           </p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Produto</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Medida</TableHead>
-                <TableHead>Preço</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">
-                    {p.name}
-                    {p.dimensions && (
-                      <span className="block text-xs font-normal text-muted-foreground">
-                        {p.dimensions}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{p.sku ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {MEASURE_LABEL[p.measureType]}
-                  </TableCell>
-                  <TableCell>
-                    {p.isPriceEditable ? (
-                      <Badge variant="secondary">Editável</Badge>
-                    ) : (
-                      <span className="font-semibold tabular-nums">
-                        {p.price != null ? formatBRL(p.price) : "—"}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={p.isActive ? "success" : "muted"}>
-                      {p.isActive ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" disabled={busyId === p.id}>
-                          {busyId === p.id ? (
-                            <Loader2 className="size-4 animate-spin" />
-                          ) : (
-                            <MoreHorizontal className="size-4" />
-                          )}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEdit(p)}>
-                          <Pencil className="size-4" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => toggleActive(p)}
-                          className={cn(p.isActive && "text-destructive focus:text-destructive")}
-                        >
-                          <Power className="size-4" /> {p.isActive ? "Desativar" : "Ativar"}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <>
+            <SearchInput
+              value={query}
+              onChange={setQuery}
+              placeholder="Buscar por nome, SKU, medida, preço ou status…"
+              label="Buscar produtos"
+              count={filtered.length}
+              total={products.length}
+              className="px-4 pb-4 sm:px-0"
+            />
+            {filtered.length === 0 ? (
+              <p className="px-6 py-10 text-center text-sm text-muted-foreground">
+                Nenhum produto encontrado para “{query}”.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Produto</TableHead>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>Medida</TableHead>
+                    <TableHead>Preço</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-medium">
+                        {p.name}
+                        {p.dimensions && (
+                          <span className="block text-xs font-normal text-muted-foreground">
+                            {p.dimensions}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{p.sku ?? "—"}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {MEASURE_LABEL[p.measureType]}
+                      </TableCell>
+                      <TableCell>
+                        {p.isPriceEditable ? (
+                          <Badge variant="secondary">Editável</Badge>
+                        ) : (
+                          <span className="font-semibold tabular-nums">
+                            {p.price != null ? formatBRL(p.price) : "—"}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={p.isActive ? "success" : "muted"}>
+                          {p.isActive ? "Ativo" : "Inativo"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" disabled={busyId === p.id}>
+                              {busyId === p.id ? (
+                                <Loader2 className="size-4 animate-spin" />
+                              ) : (
+                                <MoreHorizontal className="size-4" />
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => openEdit(p)}>
+                              <Pencil className="size-4" /> Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => toggleActive(p)}
+                              className={cn(p.isActive && "text-destructive focus:text-destructive")}
+                            >
+                              <Power className="size-4" /> {p.isActive ? "Desativar" : "Ativar"}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </>
         )}
       </CardContent>
 
